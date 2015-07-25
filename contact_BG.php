@@ -9,7 +9,7 @@
 
                 public function __construct(){
                         Contact::__construct();
-                        Root::setRelationships(array('Codes'=>new Relationship(),'Committees'=>new Relationship()));
+                        Root::setRelationships(array('Codes'=>new Relationship("Contact","Codes"),'Committees'=>new Relationship("Contact","Committees")));
                         $this->company = NULL;
                         $this->title = NULL;
                         $this->state_org = NULL;
@@ -85,7 +85,7 @@
                 }
                 protected function db_update($con){
                         $this->mysqlEsc();
-                        $sql = "UPDATE `Contacts` SET `First`=\"".$this->getFirst()."\",`Last`=\"".$this->getLast()."\",`BDay`=\"".$this->getBDay()."\",`Company`=\"".$this->getCompany()."\",`Title`=\"".$this->getTitle()."\",`State_Org`=\"".$this->getStateOrg()."\",`State_Title`=\"".$this->getStateTitle()."\",`Updated`=\"".time()."\" WHERE `ID`=\"".$this->getID()."\"";
+                        $sql = "UPDATE `Contacts` SET `First`=\"".$this->getFirst()."\",`Last`=\"".$this->getLast()."\",`BDay`=\"".$this->getBDay(NULL)."\",`Company`=\"".$this->getCompany()."\",`Title`=\"".$this->getTitle()."\",`State_Org`=\"".$this->getStateOrg()."\",`State_Title`=\"".$this->getStateTitle()."\",`Updated`=\"".time()."\" WHERE `ID`=\"".$this->getID()."\"";
                         return mysql_query($sql,$con);
                 }
                 protected function mysqlEsc(){
@@ -118,8 +118,8 @@
                 protected function getCompany(){ return $this->company; }
                 protected function getStateOrg(){ return $this->state_org; }
                 protected function getStateTitle(){ return $this->state_title; }
-                protected function getCodes(){ $rels = Root::getRelationships(); return $rels['Codes']->getRels(); }
-                protected function getCommittees(){ $rels = Root::getRelationships(); return $rels['Committees']->getRels(); }
+                public function getCodes(){ $rels = Root::getRelationships(); return $rels['Codes']->getRels(); }
+                public function getCommittees(){ $rels = Root::getRelationships(); return $rels['Committees']->getRels(); }
                 protected function getDonations(){ return $this->donations; }
         }
 

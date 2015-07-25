@@ -23,7 +23,7 @@
                         }else{ return false; }
                 }
                 public function dbWrite($con){
-                        if(isset($this->id) && $this->getID() != NULL){
+                        if(isset($this->id)){
                                 if($this->getID() == 0){ return $this->db_insert($con); }else{ return $this->db_update($con); }
                         }else{ return false; }
                 }
@@ -41,10 +41,10 @@
 			$this->setUpdated(mysql_escape_string($this->getUpdated(NULL)));			
 		}
 		protected function toArray(){ return array("ID"=>$this->getID(),"Created"=>$this->getCreated("Y-m-d"),"Updated"=>$this->getUpdated("Y-m-d"));}
-		protected function getID(){ return $this->id; }
+		protected function getID(){ return (int)$this->id; }
                 protected function getCreated($ds){ if(isset($ds) && $ds != NULL){ return date($ds,$this->created); }else{ return $this->created; } }
                 protected function getUpdated($ds){ if(isset($ds) && $ds != NULL){ return date($ds,$this->updated); }else{ return $this->updated; } }
-                protected function setID($id){ $this->id = $id; }
+                protected function setID($id){ $this->id = (int)$id; }
                 protected function setCreated($c){ $this->created = $c; }
                 protected function setUpdated($u){ $this->updated = $u; }
 	}
@@ -77,11 +77,14 @@
 			if(DBObj::dbWrite($con)){
 				//Write Relationships
 				$a = $this->getRelationships();
+				$succ = true;
 	                        foreach($a as $r){ 
 					$r->setRelRID($this->getID());
-					$r->dbWrite($con); 
+					$succ = $r->dbWrite($con); 
+					if(!$succ){break;}
 				}
-				return true;
+				error_log("succ: ".(int)$succ);
+				return $succ;
 			}else{ return false;}
 		}
 		protected function toArray(){
@@ -95,8 +98,7 @@
                 protected function getRelation($key){ return $this->relationships[$key]; }
                 protected function setRelationships($rel){ if(is_array($rel)){ $this->relationships = $rel; return TRUE; }else{ return FALSE; } }
                 protected function setRelation($root,$key,$con){
-                        $this->relationships[$key] = new Relationship();
-                        $this->relationships[$key]->init($root,$key);
+                        $this->relationships[$key] = new Relationship($root,$key);
                         $this->relationships[$key]->setRels($con,$this->getID());
                 }
 
@@ -138,19 +140,27 @@
 			}
 			protected function db_insert($con){
 				$this->mysqlEsc();
-	                        $sql = "INSERT INTO `Relations` (`ID`,`RID`,`KID`,`Created`,`Updated`) VALUES (NULL,\"".$this->getRID()."\",\"".$this->getKID()."\",\"".time()."\",\"".time()."\")";
-	                        $res = mysql_query($sql,$con);
-	                        if($res){ $this->setID(mysql_insert_id($con)); }
+				$time = time();
+	                        $sql = "INSERT INTO `Relations` (`ID`,`RID`,`KID`,`Created`,`Updated`) VALUES (NULL,\"".$this->getRID()."\",\"".$this->getKID()."\",\"".$time."\",\"".$time."\")";
+	                      	$res = mysql_query($sql,$con);
+	                        if($res){ 
+					$this->setID(mysql_insert_id($con)); 
+					$this->setCreated($time);
+					$this->setUpdated($time);
+				}
 	                        return $res;
 			}
 			protected function db_update($con){
 				$this->mysqlEsc();
-	                        $sql = "UPDATE `Relations` SET `RID`=\"".$this->getRID()."\",`KID`=\"".$this->getKID()."\",`Updated`=\"".time()."\" WHERE `ID`=\"".$this->getID()."\"";
-	                        return mysql_query($sql,$con);
+				$time = time();
+	                        $sql = "UPDATE `Relations` SET `RID`=\"".$this->getRID()."\",`KID`=\"".$this->getKID()."\",`Updated`=\"".$time."\" WHERE `ID`=\"".$this->getID()."\"";
+	                        $res = mysql_query($sql,$con);
+				if($res){ $this->setUpdated($time); }
+				return $res;
 			}
                         protected function mysqlEsc(){
 				DBObj::mysqlEsc();
-                                $this->setID(mysql_escape_string($this->getID()));
+                                $this->setKID(mysql_escape_string($this->getKID()));
                                 $this->setRID(mysql_escape_string($this->getRID()));
                                 $this->setCode(mysql_escape_string($this->getCode()));
                                 $this->setDefinition(mysql_escape_string($this->getDefinition()));
@@ -171,8 +181,9 @@
                 private $key;
                 private $relations;
 
-                public function __construct(){
-                        $this->key = NULL;
+                public function __construct($r,$k){
+			$this->root = $r;
+                        $this->key = $k;
                         $this->relations = new DLList();
                 }
                 public function init($root,$key){
@@ -204,21 +215,26 @@
 			return $a;
 		}
 		public function dbWrite($con){
-                	$rel = $this->getRels()->getFirstNode();
+                	$rel = $this->relations->getFirstNode();
 			while($rel != NULL){
-				$r = $rel->readNode();
-				if(!$r->dbWrite($con)){ return false; }
+				$succ = $rel->readNode()->dbWrite($con);
+				if(!$succ){break;}
 				$rel = $rel->getNext();
 			}
-			return true;
+			return $succ;
+			
                 }
                 public function getRels(){ return $this->relations; }
     		public function setRelRID($id){
+    		$nRels = new DLList();
 			$rel = $this->relations->getFirstNode();
 			while($rel != NULL){
 				$r = $rel->readNode();
 				$r->setRID($id);
+				$nRels->insertLast($r);
+				$rel = $rel->getNext();
 			}
+			$this->relations = $nRels;
 		}
                 private function mysqlEsc(){
                         $this->setRoot(mysql_escape_string($this->getRoot()));

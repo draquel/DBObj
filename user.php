@@ -7,7 +7,7 @@
 
                 public function __construct(){
                         Contact::__construct();
-                        Root::setRelationships(array('Groups'=>new Relationship()));
+                        Root::setRelationships(array('Groups'=>new Relationship("User","Groups")));
                         $this->username = NULL;
                         $this->password = NULL;
                         $this->llogin = NULL;
