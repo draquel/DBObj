@@ -42,11 +42,11 @@
 		}
 		protected function toArray(){ return array("ID"=>$this->getID(),"Created"=>$this->getCreated("Y-m-d"),"Updated"=>$this->getUpdated("Y-m-d"));}
 		protected function getID(){ return (int)$this->id; }
-                protected function getCreated($ds){ if(isset($ds) && $ds != NULL){ return date($ds,$this->created); }else{ return $this->created; } }
-                protected function getUpdated($ds){ if(isset($ds) && $ds != NULL){ return date($ds,$this->updated); }else{ return $this->updated; } }
+                protected function getCreated($ds){ if(isset($ds) && $ds != NULL){ return (string)date($ds,$this->created); }else{ return (int)$this->created; } }
+                protected function getUpdated($ds){ if(isset($ds) && $ds != NULL){ return (string)date($ds,$this->updated); }else{ return (int)$this->updated; } }
                 protected function setID($id){ $this->id = (int)$id; }
-                protected function setCreated($c){ $this->created = $c; }
-                protected function setUpdated($u){ $this->updated = $u; }
+                protected function setCreated($c){ $this->created = (int)$c; }
+                protected function setUpdated($u){ $this->updated = (int)$u; }
 	}
 
 	class DBOList extends DLList{
@@ -165,15 +165,15 @@
                                 $this->setCode(mysql_escape_string($this->getCode()));
                                 $this->setDefinition(mysql_escape_string($this->getDefinition()));
                         }
-                        public function setRID($id){ $this->rid = $id;}
-			private function setKID($id){ $this->kid = $id;}
-                        private function setDefinition($def){ $this->definition = $def; }
-                        private function setCode($code){ $this->code = $code; }
+                        public function setRID($id){ $this->rid = (int)$id;}
+			private function setKID($id){ $this->kid = (int)$id;}
+                        private function setDefinition($def){ $this->definition = (string)$def; }
+                        private function setCode($code){ $this->code = (string)$code; }
 
-                        private function getRID(){ return $this->rid; }
-			private function getKID(){ return $this->kid; }
-                        private function getDefinition(){ return $this->definition; }
-                        private function getCode(){ return $this->code; }
+                        private function getRID(){ return (int)$this->rid; }
+			private function getKID(){ return (int)$this->kid; }
+                        private function getDefinition(){ return (string)$this->definition; }
+                        private function getCode(){ return (string)$this->code; }
         }
  
 	class Relationship{
@@ -242,8 +242,8 @@
                 }
                 private function setRoot($r){ $this->root = ucfirst($r); }
                 private function setKey($k){ $this->key = ucfirst($k); }
-                private function getRoot(){ return $this->root; }
-                private function getKey(){ return $this->key; }
+                private function getRoot(){ return (string)$this->root; }
+                private function getKey(){ return (string)$this->key; }
         }
 
 ?>
