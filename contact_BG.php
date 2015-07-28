@@ -70,7 +70,11 @@
                         }
                         return $p;
                 }
-		
+		public function dbWrite($con){
+			if(Contact::dbWrite($con)){
+				
+			}
+		}
 		protected function db_select($con){
                         $this->mysqlEsc();
                         $sql = "SELECT * FROM `Contact_Data` WHERE `ID`=\"".$this->getID()."\"";
