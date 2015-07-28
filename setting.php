@@ -28,8 +28,8 @@
 		private function setValue($v){ $this->value = $v; }
 
 		private function getID(){ return $this->id; }
-		private function getTitle(){ return $this->title; }
-		private function getValue(){ return $this->value; }
+		public function getTitle(){ return $this->title; }
+		public function getValue(){ return $this->value; }
 	}
 
 ?>
