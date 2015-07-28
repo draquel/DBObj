@@ -30,6 +30,7 @@
 			$p['Primary'] = $this->getPrimary();
 			return $p;
 		}
+                abstract public function sameAs($other){}
 
 		protected function mysqlEsc(){
 			DBObj::mysqlEsc();
@@ -38,11 +39,11 @@
 			$this->setPrimary(mysql_escape_string($this->getPrimary()));
 		}
 		protected function getName(){ return $this->name; }
-		public function getCID(){ return $this->cid; }
-		protected function getPrimary(){ return $this->primary; }
+		public function getCID(){ return (int)$this->cid; }
+		protected function getPrimary(){ return (int)$this->primary; }
 		protected function setName($n){ $this->name = $n; }
-		public function setCID($id){ $this->cid = $id; }
-		protected function setPrimary($p){ $this->primary = $p; }
+		public function setCID($id){ $this->cid = (int)$id; }
+		protected function setPrimary($p){ $this->primary = (int)$p; }
 	}
 
 	class Address extends ContactInfo{
@@ -75,6 +76,15 @@
                         $this->setCity($row['City']);
                         $this->setState($row['State']);
                         $this->setZip($row['Zip']);
+		}
+		public function sameAs($oa){
+			var $same = true;
+			if(strtolower($oa['Address']) != strtolower($this->getAddress())){ $same = false;}
+                        if(strtolower($oa['Address2']) != strtolower($this->getAddress2())){ $same = false; }
+                        if(strtolower($oa['City']) != strtolower($this->getCity())){ $same = false; }
+                        if(strtolower($oa['State']) != strtolower($this->getState())){ $same = false; }
+                        if(strtolower($oa['Zip']) != strtolower($this->getZip())){ $same = false; }
+			return $same;
 		}
 		public function toArray(){
 			$p = ContactInfo::toArray();
@@ -142,6 +152,14 @@
 			$this->setExtention($e);
 		}
 		public function initMysql($row){ $this->init($row['ID'],$row['Created'],$row['Updated'],$row['Name'],$row['CID'],$row['Primary'],$row['Region'],$row['Area'],$row['Number'],$row['Ext']); }
+		public function sameAs($oa){
+			$same = true;
+			if($oa['Region'] != $this->getRegion()){ $same = false;}
+                        if($oa['Area'] != $this->getArea()){ $same = false; }
+                        if($oa['Number'] != str_replace(".","",str_replace("-","",$this->getNumber()))){ $same = false; }
+                        if($oa['Ext'] != $this->getExtention()){ $same = false; }
+			return $same;
+		}
 		public function toArray(){
 			$p = ContactInfo::toArray();
 			$p['Region'] = $this->getRegion();
@@ -197,12 +215,23 @@
 			ContactInfo::init($id,$cd,$ud,$n,$cid,$p);
 			$this->setAddress($a);
 		}
+		public function sameAs($oa){
+			$same = true;
+			if(strtolower($oa['Address']) != strtolower($this->getAddress())){ $same = false;}
+			return $same;
+		}
 		public function toArray(){
 			$p = ContactInfo::toArray();
 			$p['Address'] = $this->getAddress();
 			return $p;
 		}
-
+		public function db_unique($con){
+			$this->msqlEsc();
+			$sql = "SELECT * FROM `Emails` WHERE `Address`=\"".$this->getAddress()."\"";
+			if($this->getID != 1){ $sql .= " AND ID !=\"".$this->getID()."\""; }
+			$res = mysql_query($sql,$con);
+			if(mysql_num_rows($res) == 0){ return true; }else{ return false; }
+		}
 		protected function db_select($con){
                         $this->mysqlEsc();
                         $sql = "SELECT * FROM `Emails` WHERE `ID`=\"".$this->getID()."\"";
