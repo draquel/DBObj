@@ -83,7 +83,6 @@
 					$succ = $r->dbWrite($con); 
 					if(!$succ){break;}
 				}
-				error_log("succ: ".(int)$succ);
 				return $succ;
 			}else{ return false;}
 		}
@@ -101,7 +100,6 @@
                         $this->relationships[$key] = new Relationship($root,$key);
                         $this->relationships[$key]->setRels($con,$this->getID());
                 }
-
         }
 
 	class Relation extends DBObj{
