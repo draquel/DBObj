@@ -79,6 +79,7 @@
 			Person::initMysql($row);
 			if(isset($row['Phones']) && $row['Phones'] != NULL){
 				$ph = explode(";",$row['Phones']);
+				$this->phones = new DLList();
 				for($i = 0; $i < count($ph); $i += 1){
 					$p = explode(":",$ph[$i]);
 					for($j = 0; $j < count($p); $j += 1){ if(!isset($p[$j])){ $p[$j] = NULL;} }
@@ -89,6 +90,7 @@
 			}
 			if(isset($row['Emails']) && $row['Emails'] != NULL){
 				$em = explode(";",$row['Emails']);
+				$this->emails = new DLList();
 				for($i = 0; $i < count($em); $i += 1){
                 	                $e = explode(":",$em[$i]);
 					for($j = 0; $j < count($e); $j += 1){ if(!isset($e[$j])){ $e[$j] = NULL;} }
@@ -99,6 +101,7 @@
 			}
 			if(isset($row['Addresses']) && $row['Addresses'] != NULL){
 				$ad = explode(";",$row['Addresses']);
+				$this->addresses = new DLList();
 				for($i = 0; $i < count($ad); $i += 1){
                 	                $a = explode(":",$ad[$i]);
 					for($j = 0; $j < count($a); $j += 1){ if(!isset($a[$j])){ $a[$j] = NULL;} }

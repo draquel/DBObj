@@ -31,6 +31,7 @@
                         $this->setStateTitle($row['State_Title']);
                         if(isset($row['Donations']) && $row['Donations'] != NULL){
                                 $dn = explode(";",$row['Donations']);
+				$this->donations = new DLList();
                                 for($i = 0; $i < count($dn); $i += 1){
                                         $d = explode(":",$dn[$i]);
                                         for($j = 0; $j < count($d); $j += 1){ if(!isset($d[$j])){ $d[$j] = NULL;} }
@@ -105,13 +106,13 @@
                 public function setCodes($con){ Root::setRelation("Contact","Codes",$con); }
                 public function setCommittees($con){ Root::setRelation("Contact","Committees",$con); }
                 public function setDonations($con){
-                        $this->emails = new DLList();
+                        $this->donations = new DLList();
                         $sql = "SELECT * FROM Donations WHERE CID=\"".$this->getID()."\"";
                         $res = mysql_query($sql,$con);
                         while($row = mysql_fetch_array($res)){
-                                $p = new Donation();
-                                $p->initMysql($row);
-                                $this->donations->insertLast($p);
+                                $d = new Donation();
+                                $d->initMysql($row);
+                                $this->donations->insertLast($d);
                         }
                 }
 

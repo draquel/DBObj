@@ -107,13 +107,13 @@
 		}
 		protected function db_update($con){
 			$this->mysqlEsc();
-			$sql ="UPDATE `Addresses` SET `CID`=\"".$this->getCID()."\",`Name`=\"".$this->getName()."\",`Address`=\"".$this->getAddress2()."\",`Address2`=\"".$this->getAddress2()."\",`City`=\"".$this->getCity()."\",`State`=\"".$this->getState()."\",`Zip`=\"".$this->getZip()."\",`Primary`=\"".$this->getPrimary()."\",`Updated`=\"".time()."\" WHERE `ID`=\"".$this->getID()."\"";
+			$sql ="UPDATE `Addresses` SET `CID`=\"".$this->getCID()."\",`Name`=\"".$this->getName()."\",`Address`=\"".$this->getAddress()."\",`Address2`=\"".$this->getAddress2()."\",`City`=\"".$this->getCity()."\",`State`=\"".$this->getState()."\",`Zip`=\"".$this->getZip()."\",`Primary`=\"".$this->getPrimary()."\",`Updated`=\"".time()."\" WHERE `ID`=\"".$this->getID()."\"";
 			return mysql_query($sql,$con);
 		}
 		protected function db_delete($con){
 			$this->mysqlEsc();
 			$sql = "DELETE FROM `Addresses` WHERE `ID`=".$this->getID();
-			return mysql_query($con);
+			return mysql_query($sql,$con);
 		}
 		protected function mysqlEsc(){
 			ContactInfo::mysqlEsc();
@@ -260,6 +260,7 @@
 		protected function db_delete($con){
 			$this->mysqlEsc();
 			$sql = "DELETE FROM `Emails` WHERE `ID`=".$this->getID();
+			return mysql_query($sql,$con);
 		}
 		protected function mysqlEsc(){
 			ContactInfo::mysqlEsc();

@@ -27,6 +27,11 @@
                                 if($this->getID() == 0){ return $this->db_insert($con); }else{ return $this->db_update($con); }
                         }else{ return false; }
                 }
+		public function dbDelete($con){
+			if(isset($this->id)){
+				if($this->getID() == 0){ return false; }else{ return $this->db_delete($con); }
+			}else{ return false; }
+		}
 
 		protected function db_select($con,$sql){ return mysql_query($sql,$con);	}
 		protected function db_insert($con,$sql){
@@ -159,6 +164,7 @@
 			protected function db_delete($con){
 				$this->mysqlEsc();
 				$sql = "DELETE FROM `Relations` WHERE `ID`=".$this->getID();
+				return mysql_query($sql,$con);
 			}
                         protected function mysqlEsc(){
 				DBObj::mysqlEsc();
@@ -218,6 +224,7 @@
 		}
 		public function dbWrite($con){
                 	$rel = $this->relations->getFirstNode();
+			$succ = true;
 			while($rel != NULL){
 				$succ = $rel->readNode()->dbWrite($con);
 				if(!$succ){break;}
