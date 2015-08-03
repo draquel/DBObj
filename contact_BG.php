@@ -125,7 +125,7 @@
                 protected function getStateTitle(){ return $this->state_title; }
                 public function getCodes(){ $rels = Root::getRelationships(); return $rels['Codes']->getRels(); }
                 public function getCommittees(){ $rels = Root::getRelationships(); return $rels['Committees']->getRels(); }
-                protected function getDonations(){ return $this->donations; }
+                public function getDonations(){ return $this->donations; }
         }
 
 ?>
