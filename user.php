@@ -3,6 +3,7 @@
 	class User extends Contact{
                 protected $username;
                 private $password;
+		protected $status;
                 protected $llogin;
 
                 public function __construct(){
@@ -10,6 +11,7 @@
                         Root::setRelationships(array('Groups'=>new Relationship("User","Groups")));
                         $this->username = NULL;
                         $this->password = NULL;
+			$this->status = NULL;
                         $this->llogin = NULL;
                 }
                 public function init($id,$f,$l,$bd,$cd,$ud,$c,$t,$e,$u,$p,$ld){

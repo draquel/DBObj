@@ -156,6 +156,10 @@
 				if($res){ $this->setUpdated($time); }
 				return $res;
 			}
+			protected function db_delete($con){
+				$this->mysqlEsc();
+				$sql = "DELETE FROM `Relations` WHERE `ID`=".$this->getID();
+			}
                         protected function mysqlEsc(){
 				DBObj::mysqlEsc();
                                 $this->setKID(mysql_escape_string($this->getKID()));

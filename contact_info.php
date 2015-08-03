@@ -30,7 +30,6 @@
 			$p['Primary'] = $this->getPrimary();
 			return $p;
 		}
-                abstract public function sameAs($other){}
 
 		protected function mysqlEsc(){
 			DBObj::mysqlEsc();
@@ -78,7 +77,7 @@
                         $this->setZip($row['Zip']);
 		}
 		public function sameAs($oa){
-			var $same = true;
+			$same = true;
 			if(strtolower($oa['Address']) != strtolower($this->getAddress())){ $same = false;}
                         if(strtolower($oa['Address2']) != strtolower($this->getAddress2())){ $same = false; }
                         if(strtolower($oa['City']) != strtolower($this->getCity())){ $same = false; }
@@ -110,6 +109,11 @@
 			$this->mysqlEsc();
 			$sql ="UPDATE `Addresses` SET `CID`=\"".$this->getCID()."\",`Name`=\"".$this->getName()."\",`Address`=\"".$this->getAddress2()."\",`Address2`=\"".$this->getAddress2()."\",`City`=\"".$this->getCity()."\",`State`=\"".$this->getState()."\",`Zip`=\"".$this->getZip()."\",`Primary`=\"".$this->getPrimary()."\",`Updated`=\"".time()."\" WHERE `ID`=\"".$this->getID()."\"";
 			return mysql_query($sql,$con);
+		}
+		protected function db_delete($con){
+			$this->mysqlEsc();
+			$sql = "DELETE FROM `Addresses` WHERE `ID`=".$this->getID();
+			return mysql_query($con);
 		}
 		protected function mysqlEsc(){
 			ContactInfo::mysqlEsc();
@@ -186,6 +190,10 @@
 			$sql = "UPDATE `Phones` SET `CID`=\"".$this->getCID()."\",`Region`=\"".$this->getRegion()."\",`Area`=\"".$this->getArea()."\",`Number`=\"".$this->getNumber()."\",`Name`=\"".$this->getName()."\",`Ext`=\"".$this->getExtention()."\",`Primary`=\"".$this->getPrimary()."\",`Updated`=\"".time()."\" WHERE `ID`=\"".$this->getID()."\"";
 			return mysql_query($sql,$con);
 		}
+		protected function db_delete($con){
+			$this->mysqlEsc();
+			$sql = "DELETE FROM `Phones` WHERE `ID`=".$this->getID();
+		}
 		protected function mysqlEsc(){
 			ContactInfo::mysqlEsc();
                         $this->setRegion(mysql_escape_string($this->getRegion()));
@@ -243,12 +251,16 @@
                         $res = mysql_query($sql,$con);
                         $this->setID(mysql_insert_id($con));
                         return $res;
-                }   
+                }
                 protected function db_update($con){
                         $this->mysqlEsc();
                         $sql = "UPDATE `Emails` SET `CID`=\"".$this->getCID()."\",`Address`=\"".$this->getAddress()."\",`Primary`=\"".$this->getPrimary()."\",`Name`=\"".$this->getName()."\",`Updated`=\"".time()."\" WHERE `ID`=\"".$this->getID()."\"";
                         return mysql_query($sql,$con);
                 }
+		protected function db_delete($con){
+			$this->mysqlEsc();
+			$sql = "DELETE FROM `Emails` WHERE `ID`=".$this->getID();
+		}
 		protected function mysqlEsc(){
 			ContactInfo::mysqlEsc();
 			$this->setAddress(mysql_escape_string($this->getAddress()));
