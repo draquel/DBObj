@@ -25,10 +25,10 @@
 			return $p;
 		}
 		protected function db_select($con){
-                        $this->mysqlEsc();
-                        $sql = "SELECT * FROM `Donations` WHERE `ID`=\"".$this->getID()."\"";
-                        return mysql_query($sql,$con);
-                }
+			$this->mysqlEsc();
+			$sql = "SELECT * FROM `Donations` WHERE `ID`=\"".$this->getID()."\"";
+			return mysql_query($sql,$con);
+		}
 		public function db_insert($con){
 			$this->mysqlEsc();
 			$sql = "INSERT INTO `Donations` (`ID`,`CID`,`Date`,`Amount`,`Created`,`Updated`) VALUES (NULL,\"".$this->getCID()."\",\"".$this->getDate()."\",\"".$this->getAmount()."\",\"".time()."\",\"".time()."\")";
@@ -37,15 +37,15 @@
 			return $res;
 		}
 		protected function db_update($con){
-                        $this->mysqlEsc();
-                        $sql = "UPDATE `Donations` SET `CID`=\"".$this->getCID()."\",`Date`=\"".$this->getDate(NULL)."\",`Amount`=\"".$this->getAmount()."\",`Updated`=\"".time()."\" WHERE `ID`=\"".$this->getID()."\"";
-                        return mysql_query($sql,$con);
-                }
+			$this->mysqlEsc();
+			$sql = "UPDATE `Donations` SET `CID`=\"".$this->getCID()."\",`Date`=\"".$this->getDate(NULL)."\",`Amount`=\"".$this->getAmount()."\",`Updated`=\"".time()."\" WHERE `ID`=\"".$this->getID()."\"";
+			return mysql_query($sql,$con);
+		}
 		protected function mysqlEsc(){
-                        DBObj::mysqlEsc();
+            DBObj::mysqlEsc();
 			$this->setCID(mysql_escape_string($this->getCID()));
-                        $this->setDate(mysql_escape_string($this->getDate()));
-                        $this->setAmount(mysql_escape_string($this->getAmount()));
+			$this->setDate(mysql_escape_string($this->getDate()));
+			$this->setAmount(mysql_escape_string($this->getAmount()));
 		}
 		private function setCID($id){ $this->cid = $id; }
 		private function setDate($d){ $this->date = $d; }

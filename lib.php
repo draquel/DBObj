@@ -1,6 +1,5 @@
 <?php
 //Author: Daniel Raquel (draquel@webjynx.com)
-
 	function str_sanitize($s){
 		//Replace Symbols With HTML Codes
 		str_replace(" ","&#32;",$s);

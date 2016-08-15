@@ -1,5 +1,4 @@
 <?php
-//DOUBLY LINKED LIST
 	class DLList{
 		private $_firstNode;
 		private $_lastNode;
@@ -16,7 +15,6 @@
 		public function size(){	return $this->_count; }
 		public function insertFirst($data){
 			$newLink = new Node($data);
-	 
 			if($this->isEmpty()){
 				$this->_lastNode = $newLink;
 			}else{
@@ -41,7 +39,6 @@
 			$current = $this->_firstNode;
 			while($current->data != $key){
 				$current = $current->next;
-	 
 				if($current == NULL)
 					return false;
 			}
@@ -150,7 +147,7 @@
 		public $data;
 		public $next;
 		public $previous;
-	 
+
 		function __construct($data){
 			$this->data = $data;
 		}
@@ -164,5 +161,4 @@
 			return $this->previous;
 		}
 	}
-	//END DOUBLY LINKED LIST
-    ?>
+?>

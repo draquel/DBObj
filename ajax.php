@@ -1,9 +1,9 @@
 <?php
-//Author: Daniel Raquel (draquel@webjynx.com)
-include("inc.php");
-session_start();
-
-if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""){
+	//Author: Daniel Raquel (draquel@webjynx.com)
+	include("inc.php");
+	session_start();
+	
+	if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""){
 		switch($_REQUEST['ari']){
 			case 0: //DB Select/Update
 				if(isset($_POST['db'])){$_SESSION['db']['Active'] = mysql_escape_string($_POST['db']);}
@@ -16,7 +16,7 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 					$c->setCommittees($_SESSION['db']['Con']->con($_SESSION['db']['Active']));
 					$_SESSION['contacts']->insertLast($c);
 				}
-
+				
 				$res_dona = mysql_query("SELECT * FROM `Donations`",$_SESSION['db']['Con']->con($_SESSION['db']['Active']));
 				$_SESSION['donations'] = new DLList();
 				while($row = mysql_fetch_array($res_dona)){ 
@@ -24,7 +24,7 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 					$d->initMysql($row);
 					$_SESSION['donations']->insertLast($d);
 				}
-
+				
 				$res_sett = mysql_query("SELECT * FROM `Settings`",$_SESSION['db']['Con']->con($_SESSION['db']['Active']));
 				$_SESSION['settings'] = array();
 				$_SESSION['settings']['List'] = new DLList();
@@ -34,16 +34,16 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 					$_SESSION['settings']['List']->insertLast($s);
 					$_SESSION['settings'][$row['Title']] = $row['Value'];
 				}
-                                echo 1;
+				echo 1;
 			break;
 			case 1: //Check for Unique Contact Info
 				if(!$_SESSION['db']['Con']->connect($_SESSION['db']['Active'])){
-                                        echo "CONNECTION FAILURE <br >";
-                                }else{
-                                        $type = mysql_escape_string($_POST['type']);
+					echo "CONNECTION FAILURE <br >";
+				}else{
+					$type = mysql_escape_string($_POST['type']);
 					$sstr = mysql_escape_string($_POST['istr']);
 					$id = mysql_escape_string($_POST['id']);
-
+					
 					switch($type){
 						case "em":
 							$sql = "SELECT * FROM Emails WHERE Address = \"".$sstr."\"";
@@ -52,15 +52,15 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 							if(mysql_num_rows($res) == 0){ echo 1; }else{ echo 2; }
 						break;
 						case "ph":
-							
+						
 						break;
 						case "ad":
-							
+						
 						break;
 					}
 				}
 			break;
-			case 2: //Contact Edit Form
+			case 2: //Contact_BG Edit Form
 				if(!$_SESSION['db']['Con']->connect($_SESSION['db']['Active'])){
 					echo "CONNECTION FAILURE <br >";
 				}else{
@@ -72,60 +72,60 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 							if($a['ID'] == $id){ $cont = $a; break;}
 							$c = $c->getNext();
 						}
-						
+				
 						$out = "<input name=\"ID\" type=\"hidden\" value=\"".$cont['ID']."\" ><input name=\"Created\" type=\"hidden\" value=\"".$cont['Created']."\"><input name=\"Updated\" type=\"hidden\" value=\"".$cont['Updated']."\">
 						<fieldset class=\"fs_contact\">
-							<legend>Contact</legend>
+						<legend>Contact</legend>
 						<table>
 						<tr class=\"formField formSetHead\"><td>First</td><td>Last</td><td>Birthday</td></tr>
 						<tr class=\"formField\"><td><input type=\"text\" name=\"First\" value=\"". $cont['First'] ."\" ><span id=\"first_err\" class=\"err_msg\"></span></td><td><input type=\"text\" name=\"Last\" value=\"". $cont['Last'] ."\" ><span id=\"last_err\" class=\"err_msg\"></span></td><td><input type=\"date\" name=\"BDay\" value=\"".$cont['Bday']."\" ></td></td></tr>
 						<tr class=\"formField formSetHead\"><td>Company</td><td>Title</td></tr>
-				                <tr class=\"formField\"><td><input type=\"text\" name=\"Company\" value=\"". $cont['Company'] ."\" ><span id=\"comp_err\" class=\"err_msg\"></span></td><td><input type=\"text\" name=\"Title\" value=\"". $cont['Title'] ."\"     ></td></tr>
+						<tr class=\"formField\"><td><input type=\"text\" name=\"Company\" value=\"". $cont['Company'] ."\" ><span id=\"comp_err\" class=\"err_msg\"></span></td><td><input type=\"text\" name=\"Title\" value=\"". $cont['Title'] ."\"     ></td></tr>
 						<tr class=\"formField formSetHead\"><td>State Organization</td><td>Title</td></tr>
 						<tr class=\"formField\"><td><input type=\"text\" name=\"State_Org\" value=\"". $cont['State_Org'] ."\" ><span id=\"storg_err\" class=\"err_msg\"></span></td><td><input type=\"text\" name=\"State_Title\" value=\"". $cont['State_Title'] ."\" ></td></tr>
 						</table>
 						</fieldset><fieldset id=\"fs_Relations\">
-                                                        <legend>Contact Groups:</legend>
-                                                <table>
-                                                <tr class=\"formField formSetHead\"><td>Codes</td><td>Committees</td></tr>
-                                                <tr><td><select name=\"Codes\" multiple>";
-                                                for($i = 0; $i < count($_SESSION['code_arr']); $i += 1){
+						<legend>Contact Groups:</legend>
+						<table>
+						<tr class=\"formField formSetHead\"><td>Codes</td><td>Committees</td></tr>
+						<tr><td><select name=\"Codes\" multiple>";
+						for($i = 0; $i < count($_SESSION['code_arr']); $i += 1){
 							$hasCode = False;
-                                                        for($j = 0; $j < count($cont['Rels']['Codes']); $j += 1){ 
+							for($j = 0; $j < count($cont['Rels']['Codes']); $j += 1){ 
 								if($cont['Rels']['Codes'][$j]['KID'] == $_SESSION['code_arr'][$i]['ID']){ $hasCode = True; break; }
 							}
-							if($hasCode){ $out .= "<option value=\"".$cont['Rels']['Codes'][$j]['ID']."|".$cont['Rels']['Codes'][$j]['Created']."|".$cont['Rels']['Codes'][$j]    ['Updated']."|". $_SESSION['code_arr'][$i]['ID']. "\" selected>"; }
-                                                        else{ $out .= "<option value=\"0|0|0|". $_SESSION['code_arr'][$i]['ID']. "\">";  }
-                                                        $out .= $_SESSION['code_arr'][$i]['Code']. " - ". $_SESSION['code_arr'][$i]['Definition']. "</option>";
-                                                }
-                                                $out .= "</select></td><td><select name=\"Committees\" multiple>";
-                                                for($i = 0; $i < count($_SESSION['comm_arr']); $i += 1){
+							if($hasCode){ $out .= "<option value=\"".$cont['Rels']['Codes'][$j]['ID']."|".$cont['Rels']['Codes'][$j]['Created']."|".$cont['Rels']['Codes'][$j]['Updated']."|". $_SESSION['code_arr'][$i]['ID']. "\" selected>"; }
+							else{ $out .= "<option value=\"0|0|0|". $_SESSION['code_arr'][$i]['ID']. "\">";  }
+							$out .= $_SESSION['code_arr'][$i]['Code']. " - ". $_SESSION['code_arr'][$i]['Definition']. "</option>";
+						}
+						$out .= "</select></td><td><select name=\"Committees\" multiple>";
+						for($i = 0; $i < count($_SESSION['comm_arr']); $i += 1){
 							$hasComm = False;
-                                                        for($j = 0; $j < count($cont['Rels']['Committees']); $j += 1){ 
-								 if($cont['Rels']['Committees'][$j]['KID'] == $_SESSION['comm_arr'][$i]['ID']){ $hasComm = True; break; }
+							for($j = 0; $j < count($cont['Rels']['Committees']); $j += 1){ 
+								if($cont['Rels']['Committees'][$j]['KID'] == $_SESSION['comm_arr'][$i]['ID']){ $hasComm = True; break; }
 							}
 							if($hasComm){ $out .= "<option value=\"".$cont['Rels']['Committees'][$j]['ID']."|".$cont['Rels']['Committees'][$j]['Created']."|".$cont['Rels']['Committees'][$j]['Updated']."|". $_SESSION['comm_arr'][$i]['ID']. "\" selected>";  }
-                                                        else{ $out .= "<option value=\"0|0|0|". $_SESSION['comm_arr'][$i]['ID']. "\">";  }
-                                                        $out .= $_SESSION['comm_arr'][$i]['Code']. " - ". $_SESSION['comm_arr'][$i]['Definition']. "</option>";
-                                                }
-                                                $out .= "</select></td></tr>
-                                                </table>
-                                                </fieldset><fieldset class=\"fs_emails\">
-							<legend>Emails:</legend>
+							else{ $out .= "<option value=\"0|0|0|". $_SESSION['comm_arr'][$i]['ID']. "\">";  }
+							$out .= $_SESSION['comm_arr'][$i]['Code']. " - ". $_SESSION['comm_arr'][$i]['Definition']. "</option>";
+						}
+						$out .= "</select></td></tr>
+						</table>
+						</fieldset><fieldset class=\"fs_emails\">
+						<legend>Emails:</legend>
 						<table>
 						<tr class=\"formField formSetHead\"><td></td><td>Name</td><td>Address</td><td>Primary</td><td>Remove</td></tr>";
 						$e = $c->readNode()->getEmails()->getFirstNode();
-                                                while($e != NULL){
-                                                        $em = $e->readNode()->toArray();
-						$out .= "<tr class=\"formField\"><td><img class=\"err_icon\" title=\"\" src=\"img/error.png\" ></td><td><input name=\"ID\" type=\"hidden\" value=\"".$em['ID']."\" ><input name=\"Created\" type=\"hidden\" value=\"".$em['Created']."\" ><input name=\"Updated\" type=\"hidden\" value=\"".$em['Updated']."\" ><input type=\"text\" name=\"Name\" value=\"".$em['Name']."\" ></td><td><input type=\"text\" name=\"Address\" value=\"".$em['Address']."\" onBlur=\"uniqueCIC(this,'em','".$em['ID']."',this.value)\"></td><td><input class=\"Primary\" type=\"checkbox\" name=\"Primary\" onclick=\"checkPrimary(this)\"";
-						if($em['Primary'] == 1){ $out .= " checked"; }
-						$out .= "></td><td ><img class=\"rem_icon\" src=\"img/delete.png\" name=\"Delete\" onclick=\"deleteRow(this)\" ></td></tr>\n";
+						while($e != NULL){
+							$em = $e->readNode()->toArray();
+							$out .= "<tr class=\"formField\"><td><img class=\"err_icon\" title=\"\" src=\"img/error.png\" ></td><td><input name=\"ID\" type=\"hidden\" value=\"".$em['ID']."\" ><input name=\"Created\" type=\"hidden\" value=\"".$em['Created']."\" ><input name=\"Updated\" type=\"hidden\" value=\"".$em['Updated']."\" ><input type=\"text\" name=\"Name\" value=\"".$em['Name']."\" ></td><td><input type=\"text\" name=\"Address\" value=\"".$em['Address']."\" onBlur=\"uniqueCIC(this,'em','".$em['ID']."',this.value)\"></td><td><input class=\"Primary\" type=\"checkbox\" name=\"Primary\" onclick=\"checkPrimary(this)\"";
+							if($em['Primary'] == 1){ $out .= " checked"; }
+							$out .= "></td><td ><img class=\"rem_icon\" src=\"img/delete.png\" name=\"Delete\" onclick=\"deleteRow(this)\" ></td></tr>\n";
 							$e = $e->getNext();
-                                                }
+						}
 						$out .= "</table>
 						<span id=\"emails_err\"class=\"fs_err\"></span><div class=\"cc_add\" id=\"New_Email\" onclick=\"addEmail('editContact')\">+ Add Email</div>
 						</fieldset><fieldset class=\"fs_phones\">
-							<legend>Phones:</legend>
+						<legend>Phones:</legend>
 						<table>
 						<tr class=\"formField formSetHead\"><td></td><td>Name</td><td>Region</td><td>Area</td><td>Number</td><td>Ext</td><td>Primary</td><td>Remove</td></tr>";
 						$p = $c->readNode()->getPhones()->getFirstNode();
@@ -139,17 +139,17 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 						$out .= "</table>
 						<span id=\"phones_err\"class=\"fs_err\"></span><div class=\"cc_add\" id=\"New_Phone\" onclick=\"addPhone('editContact')\">+ Add Phone</div>
 						</fieldset><fieldset class=\"fs_addresses\">
-                                                        <legend>Addresses:</legend>
+						<legend>Addresses:</legend>
 						<table>
 						<tr class=\"formField formSetHead\"><td></td><td>Name</td><td>Address</td><td>Address 2</td><td>City</td><td>State</td><td>Zip</td><td>Primary</td><td>Remove</td></tr>";
 						$a = $c->readNode()->getAddresses()->getFirstNode();
-                                                while($a != NULL){
-                                                        $ad = $a->readNode()->toArray();
-                                                        $out .= "<tr class=\"formField\"><td><img class=\"err_icon\" title=\"\" src=\"img/error.png\" ></td><td><input name=\"ID\"  type=\"hidden\" value=\"".$ad['ID']."\" ><input name=\"Created\" type=\"hidden\" value=\"".$ad['Created']."\" ><input name=\"Updated\" type=\"hidden\" value=\"".$ad['Updated']."\" ><input type=\"text\" name=\"Name\" value=\"".$ad['Name']."\" ></td><td><input type=\"text\" name=\"Address\" value=\"".$ad['Address']."\" ></td><td><input type=\"text\" name=\"Address2\" value=\"".$ad['Address2']."\" ></td><td><input type=\"text\" name=\"City\" value=\"".$ad['City']."\" ></td><td><input type=\"text\" name=\"State\" value=\"".$ad['State']."\" maxlength=\"2\"></td><td><input type=\"text\" name=\"Zip\" value=\"".$ad['Zip']."\" maxlength=\"5\"></td><td><input class=\"Primary\" type=\"checkbox\" name=\"Primary\" onclick=\"checkPrimary(this)\"";
-						if($ad['Primary'] == 1){ $out .= " checked";}
+						while($a != NULL){
+							$ad = $a->readNode()->toArray();
+							$out .= "<tr class=\"formField\"><td><img class=\"err_icon\" title=\"\" src=\"img/error.png\" ></td><td><input name=\"ID\"  type=\"hidden\" value=\"".$ad['ID']."\" ><input name=\"Created\" type=\"hidden\" value=\"".$ad['Created']."\" ><input name=\"Updated\" type=\"hidden\" value=\"".$ad['Updated']."\" ><input type=\"text\" name=\"Name\" value=\"".$ad['Name']."\" ></td><td><input type=\"text\" name=\"Address\" value=\"".$ad['Address']."\" ></td><td><input type=\"text\" name=\"Address2\" value=\"".$ad['Address2']."\" ></td><td><input type=\"text\" name=\"City\" value=\"".$ad['City']."\" ></td><td><input type=\"text\" name=\"State\" value=\"".$ad['State']."\" maxlength=\"2\"></td><td><input type=\"text\" name=\"Zip\" value=\"".$ad['Zip']."\" maxlength=\"5\"></td><td><input class=\"Primary\" type=\"checkbox\" name=\"Primary\" onclick=\"checkPrimary(this)\"";
+							if($ad['Primary'] == 1){ $out .= " checked";}
 							$out .= "></td><td><img class=\"rem_icon\" src=\"img/delete.png\" name=\"Delete\" onclick=\"deleteRow(this)\" ></td></tr>\n";
 							$a = $a->getNext();
-                                                }
+						}
 						$out .= "</table>
 						<span id=\"addresses_err\"class=\"fs_err\"></span><div class=\"cc_add\" id=\"New_Address\" onclick=\"addAddress('editContact')\">+ Add Address</div>
 						</fieldset>
@@ -158,7 +158,7 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 					}else{ echo ""; }
 				}
 			break;
-			case 3: //Submit Contact Data
+			case 3: //Submit Contact_BG Data
 				if(!$_SESSION['db']['Con']->connect($_SESSION['db']['Active'])){
 					echo "CONNECTION FAILURE <br >";
 				}else{
@@ -173,11 +173,11 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 					$company = mysql_escape_string($_POST['company']);
 					$title = mysql_escape_string($_POST['title']);					
 					if($_POST['codes'] != ""){ $codes = explode(",",mysql_escape_string($_POST['codes'])); }else{ $codes = NULL; }
-                                        if($_POST['committees'] != ""){ $committees = explode(",",mysql_escape_string($_POST['committees'])); }else{ $committees = NULL;  }
-
+					if($_POST['committees'] != ""){ $committees = explode(",",mysql_escape_string($_POST['committees'])); }else{ $committees = NULL;  }
+					
 					$fcont = new Contact_BG();
-                                        $fcont->init($cid,$created,$updated,$first,$last,$bday,$company,$title,$state_org,$state_title);
-
+					$fcont->init($cid,$created,$updated,$first,$last,$bday,$company,$title,$state_org,$state_title);
+					
 					//Initialize Form Content Object
 					if($codes != NULL){
 						for($i = 0;$i < count($codes);$i += 1){
@@ -194,13 +194,13 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 					if($committees != NULL){
 						for($i = 0;$i < count($committees);$i += 1){
 							for($j = 0;$j < count($_SESSION['comm_arr']); $j += 1){
-								$committee = explode("|",$committees[$i]);
-                        	                                if($committee[3] == $_SESSION['comm_arr'][$j]['ID']){
-                                	        	                $r = new Relation();
-                                        	        	        $r->init($committee[0],$committee[1],$committee[2],$cid,$committee[3],$_SESSION['comm_arr'][$j]['Code'],$_SESSION['comm_arr'][$j]['Definition']);
-                                                	        	$fcont->getCommittees()->insertLast($r);
-                                                	        }
-                                                	}
+							$committee = explode("|",$committees[$i]);
+								if($committee[3] == $_SESSION['comm_arr'][$j]['ID']){
+									$r = new Relation();
+									$r->init($committee[0],$committee[1],$committee[2],$cid,$committee[3],$_SESSION['comm_arr'][$j]['Code'],$_SESSION['comm_arr'][$j]['Definition']);
+									$fcont->getCommittees()->insertLast($r);
+								}
+							}
 						}
 					}
 					for($i = 1;$i <= 5;$i += 1){
@@ -209,22 +209,22 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 						$e->init($_POST['em'.$i.'_id'],$_POST['em'.$i.'_created'],$_POST['em'.$i.'_updated'],$_POST['em'.$i.'_name'],$cid,$_POST['em'.$i.'_primary'],$_POST['em'.$i.'_address']);
 						$fcont->getEmails()->insertLast($e);
 					}
-                                        for($i = 1;$i <= 5;$i += 1){ 
-                                                if(!isset($_POST['ph'.$i.'_id'])){ continue; }
-                                                $p = new Phone();
-                                                $p->init($_POST['ph'.$i.'_id'],$_POST['ph'.$i.'_created'],$_POST['ph'.$i.'_updated'],$_POST['ph'.$i.'_name'],$cid,$_POST['ph'.$i.'_primary'],$_POST['ph'.$i.'_region'],$_POST['ph'.$i.'_area'],$_POST['ph'.$i.'_number'],$_POST['ph'.$i.'_ext']);
-                                                $fcont->getPhones()->insertLast($p);
-                                        }
-                                        for($i = 1;$i <= 5;$i += 1){
-                                                if(!isset($_POST['ad'.$i.'_id'])){ continue; }
-                                                $a = new Address();
-                                                $a->init($_POST['ad'.$i.'_id'],$_POST['ad'.$i.'_created'],$_POST['ad'.$i.'_updated'],$_POST['ad'.$i.'_name'],$cid,$_POST['ad'.$i.'_primary'],$_POST['ad'.$i.'_address'],$_POST['ad'.$i.'_address2'],$_POST['ad'.$i.'_city'],$_POST['ad'.$i.'_state'],$_POST['ad'.$i.'_zip']);
-                                                $fcont->getAddresses()->insertLast($a);
-                                        }
+					for($i = 1;$i <= 5;$i += 1){ 
+						if(!isset($_POST['ph'.$i.'_id'])){ continue; }
+						$p = new Phone();
+						$p->init($_POST['ph'.$i.'_id'],$_POST['ph'.$i.'_created'],$_POST['ph'.$i.'_updated'],$_POST['ph'.$i.'_name'],$cid,$_POST['ph'.$i.'_primary'],$_POST['ph'.$i.'_region'],$_POST['ph'.$i.'_area'],$_POST['ph'.$i.'_number'],$_POST['ph'.$i.'_ext']);
+						$fcont->getPhones()->insertLast($p);
+					}
+					for($i = 1;$i <= 5;$i += 1){
+						if(!isset($_POST['ad'.$i.'_id'])){ continue; }
+						$a = new Address();
+						$a->init($_POST['ad'.$i.'_id'],$_POST['ad'.$i.'_created'],$_POST['ad'.$i.'_updated'],$_POST['ad'.$i.'_name'],$cid,$_POST['ad'.$i.'_primary'],$_POST['ad'.$i.'_address'],$_POST['ad'.$i.'_address2'],$_POST['ad'.$i.'_city'],$_POST['ad'.$i.'_state'],$_POST['ad'.$i.'_zip']);
+						$fcont->getAddresses()->insertLast($a);
+					}
 					//Write to Database
 					$fcont->dbWrite($_SESSION['db']['Con']->con($_SESSION['db']['Active']));
-					 echo "Contact Added!"; 
-			}	
+					echo "Contact Added!"; 
+				}	
 			break;
 			case 4: //Submit Edit Content Data
 				if(!$_SESSION['db']['Con']->connect($_SESSION['db']['Active'])){
@@ -232,84 +232,84 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 				}else{
 					$cid = (int)$_POST['id'];
 					$created = (int)$_POST['created'];
-                                        $updated = (int)$_POST['updated'];
-                                        $first = mysql_escape_string($_POST['first']);
-                                        $last = mysql_escape_string($_POST['last']);
-                                        $bday = strtotime($_POST['bday']);
-                                        $state_org = mysql_escape_string($_POST['state_org']);
-                                        $state_title = mysql_escape_string($_POST['state_title']);
-                                        $company = mysql_escape_string($_POST['company']);
-                                        $title = mysql_escape_string($_POST['title']);    
-                                        if($_POST['codes'] != ""){ $codes = explode(",",mysql_escape_string($_POST['codes'])); }else{ $codes = NULL; } 
-                                        if($_POST['committees'] != ""){ $committees = explode(",",mysql_escape_string($_POST['committees'])); }else{ $committees = NULL;  }
-
-                                        //Initialize Form Content Object
+					$updated = (int)$_POST['updated'];
+					$first = mysql_escape_string($_POST['first']);
+					$last = mysql_escape_string($_POST['last']);
+					$bday = strtotime($_POST['bday']);
+					$state_org = mysql_escape_string($_POST['state_org']);
+					$state_title = mysql_escape_string($_POST['state_title']);
+					$company = mysql_escape_string($_POST['company']);
+					$title = mysql_escape_string($_POST['title']);    
+					if($_POST['codes'] != ""){ $codes = explode(",",mysql_escape_string($_POST['codes'])); }else{ $codes = NULL; } 
+					if($_POST['committees'] != ""){ $committees = explode(",",mysql_escape_string($_POST['committees'])); }else{ $committees = NULL;  }
+					
+					//Initialize Form Content Object
 					$fcont = new Contact_BG();
-                                        $fcont->init($cid,$created,$updated,$first,$last,$bday,$company,$title,$state_org,$state_title);
-                                        
-                                        if($codes != NULL){
+					$fcont->init($cid,$created,$updated,$first,$last,$bday,$company,$title,$state_org,$state_title);
+					
+					if($codes != NULL){
 						for($i = 0;$i < count($codes);$i += 1){ 
-	                                                for($j = 0;$j < count($_SESSION['code_arr']); $j += 1){
+							for($j = 0;$j < count($_SESSION['code_arr']); $j += 1){
 								$code = explode("|",$codes[$i]);
-                                                        	if($code[3] == $_SESSION['code_arr'][$j]['ID']){
-                                                        		$r = new Relation();
-                                                        		$r->init($code[0],$code[1],$code[2],$cid,$code[3],$_SESSION['code_arr'][$j]['Code'],$_SESSION['code_arr'][$j]['Definition']);
-                                                        		$fcont->getCodes()->insertLast($r);
-                                                        	}
-                                                	}
-                                        	}
+								if($code[3] == $_SESSION['code_arr'][$j]['ID']){
+									$r = new Relation();
+									$r->init($code[0],$code[1],$code[2],$cid,$code[3],$_SESSION['code_arr'][$j]['Code'],$_SESSION['code_arr'][$j]['Definition']);
+									$fcont->getCodes()->insertLast($r);
+								}
+							}
+						}
 					}
 					if($committees != NUll){
-                                        	for($i = 0;$i < count($committees);$i += 1){ 
-                                                	for($j = 0;$j < count($_SESSION['comm_arr']); $j += 1){
+						for($i = 0;$i < count($committees);$i += 1){ 
+							for($j = 0;$j < count($_SESSION['comm_arr']); $j += 1){
 								$committee = explode("|",$committees[$i]);
-                                                        	if($committee[3] == $_SESSION['comm_arr'][$j]['ID']){
-                                                        		$r = new Relation();
-                                                	        	$r->init($committee[0],$committee[1],$committee[2],$cid,$committee[3],$_SESSION['comm_arr'][$j]['Code'],$_SESSION['comm_arr'][$j]['Definition']);
-                                        	                	$fcont->getCommittees()->insertLast($r);
-                                                        	}   
-                                                	}   
-                                        	}
+								if($committee[3] == $_SESSION['comm_arr'][$j]['ID']){
+									$r = new Relation();
+									$r->init($committee[0],$committee[1],$committee[2],$cid,$committee[3],$_SESSION['comm_arr'][$j]['Code'],$_SESSION['comm_arr'][$j]['Definition']);
+									$fcont->getCommittees()->insertLast($r);
+								}   
+							}   
+						}
 					}
-   
-                                        for($i = 1;$i <= 5;$i += 1){ 
-                                                if(!isset($_POST['em'.$i.'_id'])){ continue; }
-                                                $e = new Email();
-                                                $e->init($_POST['em'.$i.'_id'],$_POST['em'.$i.'_created'],$_POST['em'.$i.'_updated'],$_POST['em'.$i.'_name'],$cid,$_POST['em'.$i.'_primary'],$_POST['em'.$i.'_address']);
-                                                $fcont->getEmails()->insertLast($e);
-                                        }   
-                                        for($i = 1;$i <= 5;$i += 1){ 
-                                                if(!isset($_POST['ph'.$i.'_id'])){ continue; }
-                                                $p = new Phone();
-                                                $p->init($_POST['ph'.$i.'_id'],$_POST['ph'.$i.'_created'],$_POST['ph'.$i.'_updated'],$_POST['ph'.$i.'_name'],$cid,$_POST['ph'.$i.'_primary'],$_POST['ph'.$i.'_region'],$_POST['ph'.$i.'_area'],$_POST['ph'.$i.'_number'],$_POST['ph'.$i.'_ext']);
-                                                $fcont->getPhones()->insertLast($p);
-                                        }   
-                                        for($i = 1;$i <= 5;$i += 1){ 
-                                                if(!isset($_POST['ad'.$i.'_id'])){ continue; }
-                                                $a = new Address();
-                                                $a->init($_POST['ad'.$i.'_id'],$_POST['ad'.$i.'_created'],$_POST['ad'.$i.'_updated'],$_POST['ad'.$i.'_name'],$cid,$_POST['ad'.$i.'_primary'],$_POST['ad'.$i.'_address'],$_POST['ad'.$i.'_address2'],$_POST['ad'.$i.'_city'],$_POST['ad'.$i.'_state'],$_POST['ad'.$i.'_zip']);
-                                                $fcont->getAddresses()->insertLast($a);
-                                        }
-
+					
+					for($i = 1;$i <= 5;$i += 1){ 
+						if(!isset($_POST['em'.$i.'_id'])){ continue; }
+						$e = new Email();
+						$e->init($_POST['em'.$i.'_id'],$_POST['em'.$i.'_created'],$_POST['em'.$i.'_updated'],$_POST['em'.$i.'_name'],$cid,$_POST['em'.$i.'_primary'],$_POST['em'.$i.'_address']);
+						$fcont->getEmails()->insertLast($e);
+					}   
+					for($i = 1;$i <= 5;$i += 1){ 
+						if(!isset($_POST['ph'.$i.'_id'])){ continue; }
+						$p = new Phone();
+						$p->init($_POST['ph'.$i.'_id'],$_POST['ph'.$i.'_created'],$_POST['ph'.$i.'_updated'],$_POST['ph'.$i.'_name'],$cid,$_POST['ph'.$i.'_primary'],$_POST['ph'.$i.'_region'],$_POST['ph'.$i.'_area'],$_POST['ph'.$i.'_number'],$_POST['ph'.$i.'_ext']);
+						$fcont->getPhones()->insertLast($p);
+					}   
+					for($i = 1;$i <= 5;$i += 1){ 
+						if(!isset($_POST['ad'.$i.'_id'])){ continue; }
+						$a = new Address();
+						$a->init($_POST['ad'.$i.'_id'],$_POST['ad'.$i.'_created'],$_POST['ad'.$i.'_updated'],$_POST['ad'.$i.'_name'],$cid,$_POST['ad'.$i.'_primary'],$_POST['ad'.$i.'_address'],$_POST['ad'.$i.'_address2'],$_POST['ad'.$i.'_city'],$_POST['ad'.$i.'_state'],$_POST['ad'.$i.'_zip']);
+						$fcont->getAddresses()->insertLast($a);
+					}
+					
 					//Initialize Database Content Object
 					$cont = $_SESSION['contacts']->getFirstNode();
 					$index = 0;
-                                        while($cont != NULL){
-                                                $c = $cont->readNode();
-                                                $ca = $c->toArray();
-                                                if($ca['ID'] == $cid){ break;}
-                                                $cont = $cont->getNext();
+					while($cont != NULL){
+						$c = $cont->readNode();
+						$ca = $c->toArray();
+						if($ca['ID'] == $cid){ break;}
+						$cont = $cont->getNext();
 						$index += 1;
-                                        }
-                                        $cont = $c;
+					}
+					$cont = $c;
 					
 					//DB Write Form Object/Session Update
 					$cont->dbRead($_SESSION['db']['Con']->con($_SESSION['db']['Active']));
 					$fcont->dbWrite($_SESSION['db']['Con']->con($_SESSION['db']['Active']));
 					$fcont->setDonations($_SESSION['db']['Con']->con($_SESSION['db']['Active']));
 					$_SESSION['contacts']->deleteNodeAt($index);
-                                       	$_SESSION['contacts']->insertLast($fcont);
-
+					$_SESSION['contacts']->insertLast($fcont);
+					
 					//CHECK FOR OBSOLETE RECORDS IN DATABASE
 					//Checks for Relations
 					$fcod = $fcont->getCodes()->getFirstNode();
@@ -328,19 +328,19 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 					}
 					$fcom = $fcont->getCommittees()->getFirstNode();
 					$com = $cont->getCommittees()->getFirstNode();
-                                       	while($com != NULL){
+					while($com != NULL){
 						$m = $com->readNode()->toArray();
-                                       	        $hasCode = False;
-                                       	        while($fcom != NULL){
+						$hasCode = False;
+						while($fcom != NULL){
 							$fm = $fcom->readNode()->toArray(); 
-                                       	                //error_log("COM CHECK: ".$m['ID']."::".$fm['ID']);
+							//error_log("COM CHECK: ".$m['ID']."::".$fm['ID']);
 							if($m['ID'] == $fm['ID']){ $hasCode = True; break; }
-                                       	                $fcom = $fcom->getNext();
-                                       	        }
-                                       	        if(!$hasCode){ $com->readNode()->dbDelete($_SESSION['db']['Con']->con($_SESSION['db']['Active'])); }
-                                       	        $com = $com->getNext();
-                                       	}
-
+							$fcom = $fcom->getNext();
+						}
+						if(!$hasCode){ $com->readNode()->dbDelete($_SESSION['db']['Con']->con($_SESSION['db']['Active'])); }
+						$com = $com->getNext();
+					}
+					
 					//Checks for Contact Info
 					$femails = $fcont->getEmails()->getFirstNode();
 					$emails = $cont->getEmails()->getFirstNode();
@@ -357,30 +357,30 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 					}
 					$fphones = $fcont->getPhones()->getFirstNode();
 					$phones = $cont->getPhones()->getFirstNode();
-               	                        while($phones != NULL){
+					while($phones != NULL){
 						$p = $phones->readNode()->toArray();
-                               	                $hasPhone = False;
-                                       	        while($fphones != NULL){
+						$hasPhone = False;
+						while($fphones != NULL){
 							$fp = $fphones->readNode()->toArray();
-                                                        if($p['ID'] == $fp['ID']){ $hasPhone = True; break;}
-       	                                                $fphones = $fphones->getNext();
-               	                                }   
-                       	                        if(!$hasPhone){ $phones->readNode()->dbDelete($_SESSION['db']['Con']->con($_SESSION['db']['Active']));}
-                               	                $phones = $phones->getNext();
-                                       	}
+							if($p['ID'] == $fp['ID']){ $hasPhone = True; break;}
+							$fphones = $fphones->getNext();
+						}   
+						if(!$hasPhone){ $phones->readNode()->dbDelete($_SESSION['db']['Con']->con($_SESSION['db']['Active']));}
+						$phones = $phones->getNext();
+					}
 					$faddresses = $fcont->getAddresses()->getFirstNode();
 					$addresses = $cont->getAddresses()->getFirstNode();
-               	                        while($addresses != NULL){
+					while($addresses != NULL){
 						$a = $addresses->readNode()->toArray();
-                               	                $hasAddress = False;
-                                       	        while($faddresses != NULL){
+						$hasAddress = False;
+						while($faddresses != NULL){
 							$fa = $faddresses->readNode()->toArray();
-                                               	        if($a['ID'] == $fa['ID']){ $hasAddress = True; break;}
-                                                       	$faddresses = $faddresses->getNext();
-                                                }   
-       	                                        if(!$hasAddress){ $adresses->readNode()->dbDelete($_SESSION['db']['Con']->con($_SESSION['db']['Active']));}
-               	                                $addresses = $addresses->getNext();
-                       	                }
+							if($a['ID'] == $fa['ID']){ $hasAddress = True; break;}
+							$faddresses = $faddresses->getNext();
+						}   
+						if(!$hasAddress){ $adresses->readNode()->dbDelete($_SESSION['db']['Con']->con($_SESSION['db']['Active']));}
+						$addresses = $addresses->getNext();
+					}
 					echo"Contact Updated";
 					//echo print_r($fcont->toArray()) . print_r($cont->toArray());
 				}
@@ -391,7 +391,6 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 				}else{
 					$id = mysql_escape_string($_POST['i']);
 					if($id != 0){
-						
 						$cont = $_SESSION['contacts']->getFirstNode();
 						while($cont != NULL){
 							$c = $cont->readNode()->toArray();
@@ -408,8 +407,8 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 						foreach($c['Emails'] as $em){ $s .= $em['Name']." : ".$em['Address']."<br>\n"; }
 						$s .= "</td></tr>
 						<tr><th>Phones:</th><td>";
-                                                foreach($c['Phones'] as $ph){ $s .= $ph['Name']." : ".$ph['Region']."-(".$ph['Area'].")-".$ph['Number']."<br>\n"; }
-                                                $s .= "</td></tr>
+						foreach($c['Phones'] as $ph){ $s .= $ph['Name']." : ".$ph['Region']."-(".$ph['Area'].")-".$ph['Number']."<br>\n"; }
+						$s .= "</td></tr>
 						<tr><th>Addresses:</td><td>";
 						foreach($c['Addresses'] as $ad){ $s .= $ad['Name']." : ".$ad['Address'].", ".$ad['Address2'].", ".$ad['City'].", ".$ad['State'].", ".$ad['Zip']."<br>\n";  }
 						$s .= "</td></tr>
@@ -437,22 +436,22 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 					
 					$d = new Donation();
 					$d->init(0,0,0,$id,$date,$amount);
-
+					
 					if($d->dbWrite($_SESSION['db']['Con']->con($_SESSION['db']['Active']))){ 
 						$cont = $_SESSION['contacts']->getFirstNode();
 						$index = 0;
-                                                while($cont != NULL){
-                                                        $c = $cont->readNode()->toArray();
-                                                        if($c['ID'] == $id){
+						while($cont != NULL){
+							$c = $cont->readNode()->toArray();
+							if($c['ID'] == $id){
 								$co = $cont->readNode();
 								$co->getDonations()->insertLast($d);
 								$_SESSION['contacts']->deleteNodeAt($index);
 								$_SESSION['contacts']->insertLast($co);
 								break;
 							}
-                                                        $cont = $cont->getNext();
+							$cont = $cont->getNext();
 							$index += 1;
-                                                }
+						}
 						echo "Donation Added"; 
 					}else{ echo "Error!"; }
 				}
@@ -488,35 +487,35 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 					require_once("_php/PHPExcel/PHPExcel.php");
 					$objPHPExcel = new PHPExcel();
 					$objPHPExcel->getProperties()->setCreator("")
-						 ->setLastModifiedBy("")
-						 ->setTitle("Office 2007 XLSX Test Document")
-						 ->setSubject("Office 2007 XLSX Test Document")
-						 ->setDescription("Contact sheet, complete contact listing from database.");
+					->setLastModifiedBy("")
+					->setTitle("Office 2007 XLSX Test Document")
+					->setSubject("Office 2007 XLSX Test Document")
+					->setDescription("Contact sheet, complete contact listing from database.");
 					//Write Header
 					$report_title = new PHPExcel_RichText();
 					$objPayable = $report_title->createTextRun($title);		
 					$objPayable->getFont()->setBold(true);
 					$objPHPExcel->getActiveSheet()->getCell('A1')->setValue($report_title);
 					$objPHPExcel->setActiveSheetIndex(0)
-						->setCellValue('A2', date("D, M j, Y g:ia"))
-						->setCellValue('A4', 'ID')
-						->setCellValue('B4', 'First')
-						->setCellValue('C4', 'Last')
-						->setCellValue('D4', 'State Org')
-						->setCellValue('E4', 'State Title')
-						->setCellValue('F4', 'Company')
-						->setCellValue('G4', 'Company Title')
-						->setCellValue('H4', 'Email')
-						->setCellValue('I4', 'Phone')
-						->setCellValue('J4', 'Address')
-						->setCellValue('K4', 'Address 2')
-						->setCellValue('L4', 'City')
-						->setCellValue('M4', 'State')
-						->setCellValue('N4', 'Zip')
-						->setCellValue('O4', 'Donations');
+					->setCellValue('A2', date("D, M j, Y g:ia"))
+					->setCellValue('A4', 'ID')
+					->setCellValue('B4', 'First')
+					->setCellValue('C4', 'Last')
+					->setCellValue('D4', 'State Org')
+					->setCellValue('E4', 'State Title')
+					->setCellValue('F4', 'Company')
+					->setCellValue('G4', 'Company Title')
+					->setCellValue('H4', 'Email')
+					->setCellValue('I4', 'Phone')
+					->setCellValue('J4', 'Address')
+					->setCellValue('K4', 'Address 2')
+					->setCellValue('L4', 'City')
+					->setCellValue('M4', 'State')
+					->setCellValue('N4', 'Zip')
+					->setCellValue('O4', 'Donations');
 					$objPHPExcel->setActiveSheetIndex(0)->setCellValue('P4', 'Codes')
-                                                ->setCellValue('Q4', 'Committees');
-
+					->setCellValue('Q4', 'Committees');
+					
 					//Write Data
 					$i = 5;
 					while($row = mysql_fetch_array($result)){
@@ -532,7 +531,7 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 								}
 							}
 						}
-					 	if($comm != 0){
+						if($comm != 0){
 							if(($code != 0 && !$skip) || $code == 0){
 								$skip = true; 
 								$comms = explode(";",$row['Committees']);
@@ -558,41 +557,41 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 								}
 								if($stat == "p"){
 									for($j = 0; $j < count($d_dates); $j += 1){
-										if(strtotime($d_dates[$j]) > $sfy){$skip = true;}
+									if(strtotime($d_dates[$j]) > $sfy){$skip = true;}
 									}
 								}
 								if($stat == "c"){
 									$skip = true;
 									for($j = 0; $j < count($d_dates); $j += 1){
-                	                                                        if(strtotime($d_dates[$j]) > $sfy){$skip = false;}
-                        	                                        }
+										if(strtotime($d_dates[$j]) > $sfy){$skip = false;}
+									}
 								}
 							}else{ $skip = true; }
 						}
 						if(!$skip){
-                                                        $codeList = NULL;
+							$codeList = NULL;
 							if($row['Codes'] != NULL){	
-	                                                        $codes = explode(";",$row['Codes']); 
-        	                                                for($j = 0; $j < count($codes); $j += 1){ 
-                	                                                $c = explode(":",$codes[$j]);
-                        	                                        if($codeList != NULL){ $codeList .= ", "; }
-                                	                                $codeList .= $c[1]; 
-                                        	                }
+								$codes = explode(";",$row['Codes']); 
+								for($j = 0; $j < count($codes); $j += 1){ 
+									$c = explode(":",$codes[$j]);
+									if($codeList != NULL){ $codeList .= ", "; }
+									$codeList .= $c[1]; 
+								}
 							}
-                                                        $commList = NULL;
+							$commList = NULL;
 							if($row['Committees'] != NULL){
-	                                                        $comms = explode(";",$row['Committees']);
-        	                                                for($j = 0; $j < count($comms); $j += 1){ 
-                	                                        	$c = explode(":",$comms[$j]);
-                        	                                 	if($commList != NULL){ $commList .= ", "; }
-                                	                                $commList .= $c[1];
-                                        	                }
+								$comms = explode(";",$row['Committees']);
+								for($j = 0; $j < count($comms); $j += 1){ 
+									$c = explode(":",$comms[$j]);
+									if($commList != NULL){ $commList .= ", "; }
+									$commList .= $c[1];
+								}
 							}
 							$e = explode(";",$row['Emails']);
-                                                        for($j = 0; $j < count($e); $j += 1){ 
-                                                                $temp = explode(":",$e[$j]);
+							for($j = 0; $j < count($e); $j += 1){ 
+								$temp = explode(":",$e[$j]);
 								if($temp[5] == '1'){ $email = $temp[6]; break; }
-                                                        }
+							}
 							if($row['Phones'] != NULL){
 								$p = explode(";",$row['Phones']);
 								for($j = 0; $j < count($p); $j += 1){
@@ -602,38 +601,38 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 							}
 							if($row['Addresses'] != NULL){
 								$a = explode(";",$row['Addresses']);
-        	                                                for($j = 0; $j < count($a); $j += 1){ 
-                	                                                $temp = explode(":",$a[$j]);
+								for($j = 0; $j < count($a); $j += 1){ 
+									$temp = explode(":",$a[$j]);
 									if($temp[5] == '1'){ $address = $temp; break; }
-                                	                        }
+								}
 							}
 							$donations = NULL;
 							if($row['Donations'] != NULL){
 								$d = explode(";",$row['Donations']);
-	                                                        for($j = 0; $j < count($d); $j += 1){
-        	                                                        $temp = explode(":",$d[$j]);
+								for($j = 0; $j < count($d); $j += 1){
+									$temp = explode(":",$d[$j]);
 									if($j > 0){ $donations .= " \n"; }
-                	                                                $donations .= $temp[4] . ": $".$temp[5].".00"; 
-                        	                                }
+									$donations .= $temp[4] . ": $".$temp[5].".00"; 
+								}
 							}
 							$objPHPExcel->setActiveSheetIndex(0)
-								->setCellValue('A'.$i, $row['ID'])
-								->setCellValue('B'.$i, $row['First'])
-								->setCellValue('C'.$i, $row['Last'])
-								->setCellValue('D'.$i, $row['State_Org'])
-								->setCellValue('E'.$i, $row['State_Title'])
-								->setCellValue('F'.$i, $row['Company'])
-								->setCellValue('G'.$i, $row['Title'])
-								->setCellValue('H'.$i, $email)
-								->setCellValue('I'.$i, $phone)
-								->setCellValue('J'.$i, $address[6])
-								->setCellValue('K'.$i, $address[7])
-								->setCellValue('L'.$i, $address[8])
-								->setCellValue('M'.$i, $address[9])
-								->setCellValue('N'.$i, $address[10])
-								->setCellValue('O'.$i, $donations)
-								->setCellValue('P'.$i, $codeList)
-                                                                ->setCellValue('Q'.$i, $commList);
+							->setCellValue('A'.$i, $row['ID'])
+							->setCellValue('B'.$i, $row['First'])
+							->setCellValue('C'.$i, $row['Last'])
+							->setCellValue('D'.$i, $row['State_Org'])
+							->setCellValue('E'.$i, $row['State_Title'])
+							->setCellValue('F'.$i, $row['Company'])
+							->setCellValue('G'.$i, $row['Title'])
+							->setCellValue('H'.$i, $email)
+							->setCellValue('I'.$i, $phone)
+							->setCellValue('J'.$i, $address[6])
+							->setCellValue('K'.$i, $address[7])
+							->setCellValue('L'.$i, $address[8])
+							->setCellValue('M'.$i, $address[9])
+							->setCellValue('N'.$i, $address[10])
+							->setCellValue('O'.$i, $donations)
+							->setCellValue('P'.$i, $codeList)
+							->setCellValue('Q'.$i, $commList);
 							$i += 1;
 						}
 					}
@@ -658,7 +657,7 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 					//Format Column Titles
 					$styleArray = array('borders' => array('outline' => array('style' => PHPExcel_Style_Border::BORDER_THIN,'color' => array('argb' => '000000'))),'alignment' => array('horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER));
 					$objPHPExcel->setActiveSheetIndex(0)->getStyle('A4:Q4')->applyFromArray($styleArray);
-				
+					
 					header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 					header('Content-Disposition: attachment;filename="DataExport.xlsx"');
 					header('Cache-Control: max-age=0');
@@ -668,7 +667,7 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 				}
 			break;
 			case 8: //Name Search
-
+			
 				$sstr = $_POST['sstr'];
 				$res = $_POST['res'];
 				$fn_matches = array();
@@ -677,14 +676,14 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 				for($i = 0; $i < $_SESSION['contacts']->size(); $i += 1){
 					$c = $cn->readNode()->toArray();
 					$pos=stripos($c['First'],$sstr);
-					if($pos !== false && $pos == 0){array_push($fn_matches,$c);}
+					if($pos !== false && $pos == 0){$fn_matches[]=$c;}
 					$cn = $cn->getNext();
 				}
 				$cn = $_SESSION['contacts']->getFirstNode();
 				for($i = 0; $i < $_SESSION['contacts']->size(); $i += 1){
 					$c = $cn->readNode()->toArray();
 					$pos=stripos($c['Last'],$sstr);
-                                        if($pos !== false && $pos == 0){array_push($ln_matches,$c);}
+					if($pos !== false && $pos == 0){$ln_matches[]=$c;}
 					$cn = $cn->getNext();
 				}
 				for($i = 0; $i < count($ln_matches); $i += 1){
@@ -703,7 +702,6 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 				if($res == "DA"){$ari = 11;}
 				if($res == "reviewContactRes"){ $ari = 5;}
 				
-
 				$os = "<ul class=\"search_res\">\n";
 				for($i = 0; $i < count($ln_matches); $i += 1){
 					$os .= "<li onClick=\"ajax('ajax.php','ari=".$ari."&i=".$ln_matches[$i]['ID']."','".$res."');resetSessTimeout();\"><b>".$ln_matches[$i]['Last']."</b>, ".$ln_matches[$i]['First']."</li>\n";
@@ -713,18 +711,18 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 				}
 				$os .= "</ul>";
 				echo $os;
-
+			
 			break;
 			case 9: //Generate Donation Data
 				$start = new DateTime();
 				$start->setDate(2014,1,1);
 				$end = new DateTime('NOW');
-				 for($i = 1; $i < 43; $i += 1){
+				for($i = 1; $i < 43; $i += 1){
 					$id = $i;
 					$date = random_date_in_range($start,$end);
 					$amount = rand(100,10000);
 					$sql = "INSERT INTO `Donations` (`ID`,`CID`,`Date`,`Amount`) VALUES (NULL,\"".$id."\",\"".date("Y-m-d",$date->getTimestamp())."\",\"".$amount."\")";
-                                	//$result = mysql_query($sql,$_SESSION['db']['Con']->con($_SESSION['db']['Active']));
+					//$result = mysql_query($sql,$_SESSION['db']['Con']->con($_SESSION['db']['Active']));
 					echo $result." - ".$id." - ".date("Y-m-d",$date->getTimestamp())." - ".$amount."<br >";
 				}
 			break;
@@ -734,20 +732,20 @@ if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""
 			case 11: //Generate Add Donation Form
 				$cid = $_POST['i'];
 				$c = $_SESSION['contacts']->getFirstNode();
-                                for($i = 0; $i < $_SESSION['contacts']->size(); $i += 1){
-                                        $ca = $c->readNode()->toArray();
+				for($i = 0; $i < $_SESSION['contacts']->size(); $i += 1){
+					$ca = $c->readNode()->toArray();
 					if($ca['ID'] == $cid){ break; }
-                                        $c = $c->getNext();
-                                }
+					$c = $c->getNext();
+				}
 				$s = "<table>
-			        <tr class=\"formField formSetHead\"><td>Contact</td><td>Date</td><td>Amount</td></tr>
-			        <tr class=\"formField\"><td id=\"df_name\"><input type=\"hidden\" name=\"id\" value=\"".$ca['ID']."\" />".$ca['Last'].", ".$ca['First']."</td>
-			        <td><input type=\"date\" name=\"date\" /><span id=\"date_err\" class=\"err_msg\"></span></td>
-			        <td><input type=\"text\" name=\"amount\" /><span id=\"amount_err\" class=\"err_msg\"></span></td></tr>
-        			<tr><td colspan=\"3\"><input type=\"button\" value=\"Submit\" onClick=\"completeForm('addDonation','ajax.php?ari=6','donationRes',validateDonationFormData,submitDonationFormData)\"></td></tr>
-        			</table>";
+				<tr class=\"formField formSetHead\"><td>Contact</td><td>Date</td><td>Amount</td></tr>
+				<tr class=\"formField\"><td id=\"df_name\"><input type=\"hidden\" name=\"id\" value=\"".$ca['ID']."\" />".$ca['Last'].", ".$ca['First']."</td>
+				<td><input type=\"date\" name=\"date\" /><span id=\"date_err\" class=\"err_msg\"></span></td>
+				<td><input type=\"text\" name=\"amount\" /><span id=\"amount_err\" class=\"err_msg\"></span></td></tr>
+				<tr><td colspan=\"3\"><input type=\"button\" value=\"Submit\" onClick=\"completeForm('addDonation','ajax.php?ari=6','donationRes',validateDonationFormData,submitDonationFormData)\"></td></tr>
+				</table>";
 				echo $s;
 			break;
 		}
-}else{echo "BAD REQUEST"; /*BAD ARI*/}
+	}else{echo "BAD REQUEST"; /*BAD ARI*/}
 ?>

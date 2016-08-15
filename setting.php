@@ -20,8 +20,8 @@
 
 		private function mysqlEsc(){
 			$this->setID(mysql_escape_string($this->getID()));
-                        $this->setTitle(mysql_escape_string($this->getTitle()));
-                        $this->setValue(mysql_escape_string($this->getValue()));
+			$this->setTitle(mysql_escape_string($this->getTitle()));
+			$this->setValue(mysql_escape_string($this->getValue()));
 		}
 		private function setID($id){ $this->id = $id;}
 		private function setTitle($t){ $this->title = $t; }

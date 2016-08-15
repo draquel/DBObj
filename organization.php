@@ -1,5 +1,5 @@
 <?php
-	class Organization{
+	class Organization extends Root{
 		private $id;
 		private $name;
 		private $contacts;
