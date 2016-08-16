@@ -1,4 +1,8 @@
 <?php
+	include("lib.php");
+	include("dllist.php");
+	include("sql.php");
+	
 	class DBObj{
 		private $id;
 		private $created;
@@ -251,4 +255,10 @@
 		private function getRoot(){ return (string)$this->root; }
 		private function getKey(){ return (string)$this->key; }
 	}
+	
+	include("contact_info.php");
+	include("contact.php");
+	include("user.php");
+	include("content.php");
+	include("setting.php");
 ?>
