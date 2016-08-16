@@ -1,6 +1,6 @@
 <?php
 	//Author: Daniel Raquel (draquel@webjynx.com)
-	include("inc.php");
+	include("dbobj.php");
 	session_start();
 	
 	if(isset($_REQUEST['ari']) || $_REQUEST['ari'] != NULL || $_REQUEST['ari'] != ""){
