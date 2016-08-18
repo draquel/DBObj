@@ -5,18 +5,18 @@
         protected $last;
 		protected $bday;
 
-		public function __construct(){
-			Root::__construct();	
+		public function __construct($id,$t){
+			Root::__construct($id,$t);	
 			$this->first = NULL;
 			$this->last = NULL;
 			$this->bday = NULL;
 		}
-		public function init($id,$f,$l,$bd,$cd,$ud){
+/*		public function init($id,$f,$l,$bd,$cd,$ud){
 			Root::init($id,$cd,$ud);
 			$this->setFirst($f);
 			$this->setLast($l);
 			$this->setBDay($bd);
-		}
+		}*/
 		public function initMysql($row){ 
 			Root::initMysql($row);
 			$this->setFirst($row['First']);
@@ -30,28 +30,28 @@
 			$p['Bday'] = $this->getBday("Y-m-d");
 			return $p;
 		}
-		protected function db_select($con){
+/*		protected function db_select($con){
 			$this->mysqlEsc();
 			$sql = "SELECT * FROM `Persons` WHERE `ID`=\"".$this->getID()."\"";
-			return mysql_query($sql,$con);
-		}
+			return mysqli_query($con,$sql);
+		}*/
 		protected function db_insert($con){
 			$this->mysqlEsc();
-			$sql = "INSERT INTO `Persons` (`ID`,`First`,`Last`,`BDate`,`Created`,`Updated`) VALUES (NULL,\"".$this->getFirst()."\",\"".$this->getLast()."\",\"".$this->getBDay(NULL)."\",\"".time()."\",\"".time()."\")";
-			$res = mysql_query($sql,$con);
-			if($res){ $this->setID(mysql_insert_id($con)); }
+			$sql = "INSERT INTO `Persons` (`ID`,`First`,`Last`,`BDay`,`Created`,`Updated`) VALUES (NULL,\"".$this->getFirst()."\",\"".$this->getLast()."\",\"".$this->getBDay(NULL)."\",\"".time()."\",\"".time()."\")";
+			$res = mysqli_query($con,$sql);
+			if($res){ $this->setID(mysqli_insert_id($con)); }
 			return $res;
 		}
 		protected function db_update($con){
 			$this->mysqlEsc();
 			$sql = "UPDATE `Persons` SET `First`=\"".$this->getFirst()."\",`Last`=\"".$this->getLast()."\",`BDay`=\"".$this->getBDay(NULL)."\",`Updated`=\"".time()."\" WHERE `ID`=\"".$this->getID()."\"";
-			return mysql_query($sql,$con);
+			return mysqli_query($con,$sql);
 		}
 		protected function mysqlEsc(){
 			Root::mysqlEsc();
-			$this->setFirst(mysql_escape_string($this->getFirst()));
-			$this->setLast(mysql_escape_string($this->getLast()));
-			$this->setBDay(mysql_escape_string($this->getBDay(NULL)));
+			$this->setFirst(mysqli_escape_string($this->getFirst()));
+			$this->setLast(mysqli_escape_string($this->getLast()));
+			$this->setBDay(mysqli_escape_string($this->getBDay(NULL)));
 		}
 		protected function getFirst(){ return $this->first; }
 		protected function getLast(){ return $this->last; }
@@ -66,15 +66,16 @@
 		protected $addresses;
 		protected $phones;
 		
-		public function __construct(){
-			Person::__construct();
+		public function __construct($id,$t){
+			if(!isset($t) || $t == NULL || $t == ""){ $t = "Contacts"; }
+			Person::__construct($id,$t);
 			$this->emails = new DLList();
 			$this->addresses = new DLList();
 			$this->phones = new DLList();
 		}
-		public function init($id,$f,$l,$bd,$cd,$ud){
+/*		public function init($id,$f,$l,$bd,$cd,$ud){
 			Person::init($id,$f,$l,$bd,$cd,$ud);
-		}
+		}*/
 		public function initMysql($row){
 			Person::initMysql($row);
 			if(isset($row['Phones']) && $row['Phones'] != NULL){
@@ -161,22 +162,22 @@
 				return true;
 			}else{ return false; }
 		}
-		protected function db_select($con){
+/*		protected function db_select($con){
 			$this->mysqlEsc();
 			$sql = "SELECT * FROM `Contact_Data` WHERE `ID`=\"".$this->getID()."\"";
-			return mysql_query($sql,$con);	
-		}
+			return mysqli_query($con,$sql);	
+		}*/
 		protected function db_insert($con){
 			$this->mysqlEsc();
 			$sql = "INSERT INTO `Contacts` (`ID`,`First`,`Last`,`BDay`,`Created`,`Updated`) VALUES (NULL,\"".$this->getFirst()."\",\"".$this->getLast()."\",\"".$this->getBDay(NULL)."\",\"".$time()."\",\"".$time()."\")";
-			$res = mysql_query($sql,$con);
-			if($res){ $this->setID(mysql_insert_id($con)); }
+			$res = mysqli_query($con,$sql);
+			if($res){ $this->setID(mysqli_insert_id($con)); }
 			return $res;
 		}
 		protected function db_update($con){
 			$this->mysqlEsc();
 			$sql = "UPDATE `Contacts` SET `First`=\"".$this->getFirst()."\",`Last`=\"".$this->getLast()."\",`BDay`=\"".$this->getBDay(NULL)."\",`Updated`=\"".time()."\" WHERE `ID`=\"".$this->getID()."\"";
-			return mysql_query($sql,$con);
+			return mysqli_query($con,$sql);
 		}
 		public function toArray(){
 			$a = Person::toArray();
@@ -209,51 +210,51 @@
 		}
 		protected function setAddresses($con){ 
 			$this->addresses = new DLList();
-			$sql = "SELECT * FROM Addresses WHERE CID=\"".$this->getID()."\"";
-			$res = mysql_query($sql,$con);
-			while($row = mysql_fetch_array($res)){
-				$a = new Address;
+			$sql = "SELECT a.* FROM Addresses a LEFT JOIN Relationships r ON a.ID = r.RID AND r.Key = 'AddressesParent' WHERE a.PID=".$this->getID()." AND r.Code = 'Contact'";
+			$res = mysqli_query($con,$sql);
+			while($row = mysqli_fetch_array($res)){
+				$a = new Address(NULL);
 				$a->initMysql($row);
 				$this->addresses->insertLast($a);
 			}
 		}
 		protected function setPhones($con){
 			$this->phones = new DLList();
-			$sql = "SELECT * FROM Phones WHERE CID=\"".$this->getID()."\"";
-			$res = mysql_query($sql,$con);
-			while($row = mysql_fetch_array($res)){
-				$p = new Phone;
+			$sql = "SELECT p.* FROM Phones p LEFT JOIN Relationships r ON p.ID = r.RID AND r.Key = 'PhonesParent' WHERE p.PID=".$this->getID()." AND r.Code = 'Contact'";
+			$res = mysqli_query($con,$sql);
+			while($row = mysqli_fetch_array($res)){
+				$p = new Phone(NULL);
 				$p->initMysql($row);
 				$this->phones->insertLast($p);
 			}
 		}
 		protected function setEmails($con){
 			$this->emails = new DLList();
-			$sql = "SELECT * FROM Emails WHERE CID=\"".$this->getID()."\"";
-			$res = mysql_query($sql,$con);
-			while($row = mysql_fetch_array($res)){
-				$p = new Email;
+			$sql = "SELECT e.* FROM Emails e LEFT JOIN Relationships r ON e.ID = r.RID AND r.Key = 'EmailsParent' WHERE e.PID=".$this->getID()." AND r.Code = 'Contact'";
+			$res = mysqli_query($con,$sql);
+			while($row = mysqli_fetch_array($res)){
+				$p = new Email(NULL);
 				$p->initMysql($row);
 				$this->emails->insertLast($p);
 			}
 		}
-		private function setContactInfoCID(){
+		private function setContactInfoPID(){
 			$em = $this->getEmails()->getFirstNode();
 			while($em != NULL){
 				$e = $em->readNode();
-				$e->setCID($this->getID());
+				$e->setPID($this->getID());
 				$em = $em->getNext();
 			}
 			$ph = $this->getPhones()->getFirstNode();
 			while($ph != NULL){
 				$p = $ph->readNode();
-				$p->setCID($this->getID());
+				$p->setPID($this->getID());
 				$ph = $ph->getNext();
 			}
 			$ad = $this->getAddresses()->getFirstNode();
 			while($ad != NULL){
 				$a = $ad->readNode();
-				$a->setCID($this->getID());
+				$a->setPID($this->getID());
 				$ad = $ad->getNext();
 			}	
 		}
