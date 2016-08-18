@@ -73,7 +73,7 @@
 			$this->setCreated(mysqli_escape_string($this->getCreated(NULL)));
 			$this->setUpdated(mysqli_escape_string($this->getUpdated(NULL)));			
 		}
-		public function toArray(){ return array("ID"=>$this->getID(),"Created"=>$this->getCreated("Y-m-d"),"Updated"=>$this->getUpdated("Y-m-d"));}
+		public function toArray(){ return array("ID"=>$this->getID(),"Created"=>$this->getCreated(NULL),"Updated"=>$this->getUpdated(NULL));}
 		
 		protected function getID(){ return (int)$this->id; }
 		protected function getTable(){ return (string)$this->table; }
@@ -289,6 +289,18 @@
 				$node = $node->getNext();
 			}
 			if($result->size() > 0){ return $result; }else{ return false; }
+		}
+		public function getArchive(){
+			$result = array();
+			$node = DLList::getFirstNode();
+			for($i = 0; $i < DLList::size(); $i += 1){
+				$d = $node->readNode()->toArray();
+				$ds = date("M Y",$d['Created']);
+				if(!isset($result[$ds])){ $result[$ds] = array(); }
+				$result[$ds][] = $d;
+				$node = $node->getNext();
+			}
+			if(count($result) > 0){ return $result; }else{ return false; }	
 		}
 	}
 	

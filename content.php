@@ -46,7 +46,7 @@
 		
 		public function __construct($id){
 			Content::__construct($id,"Blogs");	
-			$this->posts = new DBOList();
+			$this->posts = new DBOList("Posts");
 			$this->categories = new DLList();
 			$this->pageSize = 0;
 		}
@@ -102,7 +102,7 @@
 			$this->setPosts($con);
 			$this->setCategories($con);
 		}
-		protected function getPosts(){ return $this->posts; }
+		public function getPosts(){ return $this->posts; }
 		public function getCategories(){ return $this->categories; }
 		public function getPageSize(){ return (int)$this->pageSize; }
 		
