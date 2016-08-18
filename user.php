@@ -5,20 +5,20 @@
 		protected $status;
 		protected $llogin;
 		
-		public function __construct(){
-			Contact::__construct();
+		public function __construct($id){
+			Contact::__construct($id,"Users");
 			Root::setRelationships(array('Groups'=>new Relationship("User","Groups")));
 			$this->username = NULL;
 			$this->password = NULL;
 			$this->status = NULL;
 			$this->llogin = NULL;
 		}
-		public function init($id,$f,$l,$bd,$cd,$ud,$c,$t,$e,$u,$p,$ld){
+/*		public function init($id,$f,$l,$bd,$cd,$ud,$c,$t,$e,$u,$p,$ld){
 			Contact::init($id,$f,$l,$bd,$cd,$ud,$c,$t,$e);
 			$this->setUname($u);
 			$this->setPass($p);
 			$this->setLLogin($ld);
-		}
+		}*/
 		public function initMysql($row){
 			Contact::initMysql($row,FALSE);
 			$this->setUname($row['Username']);
@@ -48,11 +48,14 @@
 				return TRUE;
 			}else{ return FALSE; }
 		}
-		protected function db_select($con){
+		public function setContactInfo($con){
+			Contact::setContactInfo($con);
+		}
+/*		protected function db_select($con){
 			$this->mysqlEsc();
 			$sql = "SELECT * FROM `Users_Data` WHERE `ID`=\"".$this->getID()."\"";
 			return mysql_query($sql,$con);
-		}
+		}*/
 		protected function db_insert($con){
 			$this->mysqlEsc();
 			$sql = "INSERT INTO `Users` (`ID`,`First`,`Last`,`BDay`,`Created`,`Updated`,`Username`,`Password`,`LLogin`) VALUES (NULL,\"".$this->getFirst()."\",\"".$this->getLast()."\",\"".$this->getBDay(NULL)."\",\"".time()."\",\"".time()."\",\"".$this->getUname()."\",\"".$this->getPass()."\",\"".$this->getLLogin(NULL)."\")";
@@ -65,8 +68,8 @@
 			$sql = "UPDATE `Users` SET `First`=\"".$this->getFirst()."\",`Last`=\"".$this->getLast()."\",`Updated`=\"".time()."\",`BDay`=\"".$this->getBDay(NULL)."\",`Username`=\"".$this->getUname()."\",`Password`=\"".$this->getPass()."\",`LLogin`=\"".$this->getLLogin()."\" WHERE `ID`=\"".$this->getID()."\"";
 			return mysql_query($sql,$con);
 		}
-		protected function mysqlEsc($parent){
-			if($parent){ Contact::mysqlEsc(); }
+		protected function mysqlEsc(){
+			Contact::mysqlEsc();
 			$this->setUname(mysql_escape_string($this->getUname()));
 			$this->setPass(mysql_escape_string($this->getPass()));
 		}
