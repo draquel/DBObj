@@ -53,12 +53,12 @@
 			$this->setLast(mysqli_escape_string($this->getLast()));
 			$this->setBDay(mysqli_escape_string($this->getBDay(NULL)));
 		}
-		protected function getFirst(){ return $this->first; }
-		protected function getLast(){ return $this->last; }
-		protected function getBDay($ds){ if(isset($ds) && $ds != NULL){ return date($ds,$this->bday); }else{ return $this->bday; } }
-		protected function setFirst($first){ $this->first = $first; }
-		protected function setLast($last){ $this->last = $last; }
-		protected function setBDay($bd){ $this->bday = $bd; }
+		protected function getFirst(){ return (string)$this->first; }
+		protected function getLast(){ return (string)$this->last; }
+		protected function getBDay($ds){ if(isset($ds) && $ds != NULL){ return (string)date($ds,$this->bday); }else{ return (int)$this->bday; } }
+		protected function setFirst($first){ $this->first = (string)$first; }
+		protected function setLast($last){ $this->last = (string)$last; }
+		protected function setBDay($bd){ $this->bday = (int)$bd; }
 	}
 
 	class Contact extends Person{

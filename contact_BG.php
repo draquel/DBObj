@@ -16,13 +16,13 @@
 			$this->state_title = NULL;
 			$this->donations = new DLList();
 		}
-		public function init($id,$cd,$ud,$f,$l,$bd,$c,$t,$so,$st){
+/*		public function init($id,$cd,$ud,$f,$l,$bd,$c,$t,$so,$st){
 			Contact::init($id,$f,$l,$bd,$cd,$ud);
 			$this->setCompany($c);
 			$this->setTitle($t);
 			$this->setStateOrg($so);
 			$this->setStateTitle($st);
-		}
+		}*/
 		public function initMysql($row){
 			Contact::initMysql($row);
 			$this->setCompany($row['Company']);

@@ -79,13 +79,13 @@
 			$res = mysql_query($sql,$con);
 			if(mysql_num_rows($res) == 1){ return mysql_fetch_array($res); }else{ return FALSE; }
 		}
-		protected function setUname($un){ $this->username = $un; }
-		protected function setPass($p){ $this->password = $p; }
-		protected function setLLogin($t){ $this->llogin = $t;  }
+		protected function setUname($un){ $this->username = (string)$un; }
+		protected function setPass($p){ $this->password = (string)$p; }
+		protected function setLLogin($t){ $this->llogin = (int)$t;  }
 		protected function setGroups($con){ Root::setRelation("User","Groups",$con); }
-		protected function getUname(){ return $this->username; }
-		protected function getPass(){ return $this->password; }
-		protected function getLLogin($ds){ if(isset($ds) && $ds != NULL){ return date($ds,$this->llogin); }else{ return $this->llogin; } }
+		protected function getUname(){ return (string)$this->username; }
+		protected function getPass(){ return (string)$this->password; }
+		protected function getLLogin($ds){ if(isset($ds) && $ds != NULL && $ds != ""){ return (string)date($ds,$this->llogin); }else{ return (int)$this->llogin; } }
 		protected function getGroups(){ $rels = Root::getRelationships(); return $rels['Groups']->getRels(); }
 	}
 ?>

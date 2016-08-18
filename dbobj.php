@@ -76,12 +76,12 @@
 		public function toArray(){ return array("ID"=>$this->getID(),"Created"=>$this->getCreated("Y-m-d"),"Updated"=>$this->getUpdated("Y-m-d"));}
 		
 		protected function getID(){ return (int)$this->id; }
-		protected function getTable(){ return $this->table; }
-		protected function getCreated($ds){ if(isset($ds) && $ds != NULL){ return (string)date($ds,$this->created); }else{ return (int)$this->created; } }
-		protected function getUpdated($ds){ if(isset($ds) && $ds != NULL){ return (string)date($ds,$this->updated); }else{ return (int)$this->updated; } }
+		protected function getTable(){ return (string)$this->table; }
+		protected function getCreated($ds){ if(isset($ds) && $ds != NULL && $ds != ""){ return (string)date($ds,$this->created); }else{ return (int)$this->created; } }
+		protected function getUpdated($ds){ if(isset($ds) && $ds != NULL && $ds != ""){ return (string)date($ds,$this->updated); }else{ return (int)$this->updated; } }
 		
 		protected function setID($id){ $this->id = (int)$id; }
-		protected function setTable($t){ $this->table = $t; }
+		protected function setTable($t){ $this->table = (string)$t; }
 		protected function setCreated($c){ $this->created = (int)$c; }
 		protected function setUpdated($u){ $this->updated = (int)$u; }
 	}
@@ -123,7 +123,6 @@
 			$this->relationships[$key]->setRels($con,$this->getID());
 		}
 	}
-
 	class Relation extends DBObj{
 		private $rid;
 		private $kid;
@@ -144,7 +143,13 @@
 			$this->setCode($code);
 			$this->setDefinition($def);
 		}*/
-		public function initMysql($row){ $this->init($row['ID'],$row['Created'],$row['Updated'],$row['RID'],$row['KID'],$row['Code'],$row['Definition']); }
+		public function initMysql($row){ 
+			DBObj::initMysql($row);
+			$this->setRID($row['RID']);
+			$this->setKID($row['KID']);
+			$this->setCode($row['Code']);
+			$this->setDefinition($row['Definition']); 
+		}
 		public function toArray(){
 			$p = DBObj::toArray();
 			$p['RID'] = $this->getRID();
@@ -154,7 +159,7 @@
 			return $p;
 		}
 		protected function db_select($con){
-			$this->mysqlEsc();
+			/*$this->mysqlEsc();*/
 			$sql = "SELECT * FROM `Relationships` WHERE `ID`=\"".$this->getID()."\"";
 			return mysqli_query($sql,$con);
 		}
@@ -200,7 +205,7 @@
 		private function getDefinition(){ return (string)$this->definition; }
 		private function getCode(){ return (string)$this->code; }
 	}
- 	/* Handles Many to Many Relationships */
+
 	class Relationship{
 		private $root;
 		private $key;
@@ -216,10 +221,10 @@
 			$this->setKey($key);
 		}
 		public function setRels($con,$id){
-			$this->mysqlEsc();
+			/*$this->mysqlEsc();*/
 			$this->relations = new DLList();
-			$sql = "SELECT * FROM Relationships WHERE `Key` = '".$this->getKey()."' AND `RID`=".mysqli_escape_string($id);
-			$res = mysqli_query($sql,$con);
+			$sql = "SELECT * FROM Relationships WHERE `Key` = '".$this->getKey()."' AND `RID`=".$id;
+			$res = mysqli_query($con,$sql);
 			while($row = mysqli_fetch_array($res)){
 				$r = new Relation();
 				$r->initMysql($row);
@@ -264,8 +269,8 @@
 			$this->setRoot(mysqli_escape_string($this->getRoot()));
 			$this->setKey(mysqli_escape_string($this->getKey()));
 		}
-		private function setRoot($r){ $this->root = ucfirst($r); }
-		private function setKey($k){ $this->key = ucfirst($k); }
+		private function setRoot($r){ $this->root = (string)ucfirst($r); }
+		private function setKey($k){ $this->key = (string)ucfirst($k); }
 		
 		private function getRoot(){ return (string)$this->root; }
 		private function getKey(){ return (string)$this->key; }

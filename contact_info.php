@@ -37,10 +37,10 @@
 			$this->setPID(mysql_escape_string($this->getPID()));
 			$this->setPrimary(mysql_escape_string($this->getPrimary()));
 		}
-		protected function getName(){ return $this->name; }
+		protected function getName(){ return (string)$this->name; }
 		public function getPID(){ return (int)$this->cid; }
 		protected function getPrimary(){ return (int)$this->primary; }
-		protected function setName($n){ $this->name = $n; }
+		protected function setName($n){ $this->name = (string)$n; }
 		public function setPID($id){ $this->cid = (int)$id; }
 		protected function setPrimary($p){ $this->primary = (int)$p; }
 	}
@@ -125,17 +125,17 @@
 			$this->setZip(mysql_escape_string($this->getZip()));
 		}
 		
-		private function setAddress($address){ $this->address = $address; }
-		private function setAddress2($address2){ $this->address2 = $address2; }
-		private function setCity($city){ $this->city = $city; }
-		private function setState($state){ $this->state = $state; }
-		private function setZip($zip){ $this->zip = $zip; }
+		private function setAddress($address){ $this->address = (string)$address; }
+		private function setAddress2($address2){ $this->address2 = (string)$address2; }
+		private function setCity($city){ $this->city = (string)$city; }
+		private function setState($state){ $this->state = (string)$state; }
+		private function setZip($zip){ $this->zip = (string)$zip; }
 
-		private function getAddress(){ return $this->address; }
-		private function getAddress2(){ return $this->address2; }
-		private function getCity(){ return $this->city; }
-		private function getState(){ return $this->state; }
-		private function getZip(){ return $this->zip; }
+		private function getAddress(){ return (string)$this->address; }
+		private function getAddress2(){ return (string)$this->address2; }
+		private function getCity(){ return (string)$this->city; }
+		private function getState(){ return (string)$this->state; }
+		private function getZip(){ return (string)$this->zip; }
 	}
 
 	class Phone extends ContactInfo{
@@ -212,14 +212,14 @@
 			$this->setExtention(mysql_escape_string($this->getExtention()));
 		}
 
-		private function setRegion($r){ $this->region = $r; }
-		private function setArea($a){ $this->area = $a; }
-		private function setNumber($n){ $this->number = $n; }
-		private function setExtention($e){ $this->ext = $e; }
-		private function getRegion(){ return $this->region; }
-		private function getArea(){ return $this->area; }
-		private function getNumber(){ return $this->number; }
-		private function getExtention(){ return $this->ext; }
+		private function setRegion($r){ $this->region = (string)$r; }
+		private function setArea($a){ $this->area = (string)$a; }
+		private function setNumber($n){ $this->number = (string)$n; }
+		private function setExtention($e){ $this->ext = (string)$e; }
+		private function getRegion(){ return (string)$this->region; }
+		private function getArea(){ return (string)$this->area; }
+		private function getNumber(){ return (string)$this->number; }
+		private function getExtention(){ return (string)$this->ext; }
 	}
 
 	class Email extends ContactInfo{
@@ -282,7 +282,7 @@
 			$this->setAddress(mysql_escape_string($this->getAddress()));
 		}
 
-		private function getAddress(){ return $this->address; }
-		private function setAddress($a){ $this->address = $a; }
+		private function getAddress(){ return (string)$this->address; }
+		private function setAddress($a){ (string)$this->address = $a; }
 	}
 ?>

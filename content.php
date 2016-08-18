@@ -30,24 +30,24 @@
 			return $a;
 		}
 		
-		protected function getTitle(){ return $this->title; }
-		protected function getDesciption(){ return $this->description; }
+		protected function getTitle(){ return (string)$this->title; }
+		protected function getDesciption(){ return (string)$this->description; }
 		protected function getActive(){ return (int)$this->active; }
 		
-		protected function setTitle($t){ $this->title = $t; }
-		protected function setDescription($d){ $this->description = $d; }
+		protected function setTitle($t){ (string)$this->title = $t; }
+		protected function setDescription($d){ (string)$this->description = $d; }
 		protected function setActive($a){ $this->active = (int)$a; }
 	}
 	
 	class Blog extends Content{
+		protected $pageSize;
 		protected $posts;
 		protected $categories;
-		protected $pageSize;
 		
 		public function __construct($id){
 			Content::__construct($id,"Blogs");	
 			$this->posts = new DBOList();
-			$this->categorites = new DLList();
+			$this->categories = new DLList();
 			$this->pageSize = 0;
 		}
 /*		public function init($id,$t,$d,$h,$p,$c,$ps,$cd,$ud){
@@ -58,43 +58,73 @@
 		}*/
 		public function initMysql($row){ 
 			Content::initMysql($row);
-			$this->setPosts($row['Posts']);
-			$this->setCategories($row['Categories']);
 			$this->setPageSize($row['PageSize']);
 		}
 		public function toArray(){
 			$a = Content::toArray();
-			$a['Posts'] =  array();
-			$g = $this->getPosts()->getFirstNode();
-			for($i = 0; $i < $this->getPosts()->size(); $i += 1){
-				$ar = $g->readNode()->toArray();
-				$a['Posts'][$i] = $ar;
-				$g = $g->getNext();
+			if($this->getPosts()->size() != 0){
+				$a['Posts'] =  array();
+				$g = $this->getPosts()->getFirstNode();
+				for($i = 0; $i < $this->getPosts()->size(); $i += 1){
+					$ar = $g->readNode()->toArray();
+					$a['Posts'][$i] = $ar;
+					$g = $g->getNext();
+				}
 			}
-			$a['Categories'] =  array();
-			$g = $this->getCategories()->getFirstNode();
-			for($i = 0; $i < $this->getCategories()->size(); $i += 1){
-				$ar = $g->readNode()->toArray();
-				$a['Categories'][$i] = $ar;
-				$g = $g->getNext();
+			if($this->getCategories()->size() != 0){
+				$a['Categories'] =  array();
+				$g = $this->getCategories()->getFirstNode();
+				for($i = 0; $i < $this->getCategories()->size(); $i += 1){
+					$ar = $g->readNode()->toArray();
+					$a['Categories'][$i] = $ar;
+					$g = $g->getNext();
+				}
 			}
 			$a['PageSize'] = $this->getPageSize();
 			return $a;
 		}
-		public function loadPosts($con){
-			$sql = "SELECT p.* FROM Posts LEFT JOIN Relationships ON (r.RID = p.ID and r.Key = 'Blog')";
-		}
-		public function loadPage($num,$con){
-			
-		}
 		
+		public function getPage($num){
+			$page = new DLList();
+			$post = $this->getPosts()->getFirstNode();
+			for($i = ($num-1)*$this->getPageSize(); $i <= ($num * $this->getPageSize()); $i++){
+				if($i <= ($num-1)*$this->getPageSize()){ continue; }
+				if($i > $this->getPosts()->size() || $i > ($num * $this->getPageSize())){ break; }
+				if($i > ($num-1)*$this->getPageSize() && $i <= ($num * $this->getPageSize())){
+					$p = $post->readNode();	
+					$page->insertLast($p);	
+				}
+				$post = $post->getNext();
+			}
+			return $page;
+		}
+		public function load($con){
+			$this->setPosts($con);
+			$this->setCategories($con);
+		}
 		protected function getPosts(){ return $this->posts; }
-		protected function getCategories(){ return $this->categories; }
-		protected function getPageSize(){ return $this->page_size; }
+		public function getCategories(){ return $this->categories; }
+		public function getPageSize(){ return (int)$this->pageSize; }
 		
-		protected function setPosts($p){ $this->posts = $p; }
-		protected function setCategories($c){ $this->categories = $c; }
-		protected function setPageSize($ps){ $this->pageSize = $ps; }
+		protected function setPosts($con){
+			$sql = "SELECT p.* FROM Posts p LEFT JOIN Relationships r ON p.ID = r.RID AND r.Key = 'PostParent' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."'";
+			$res = mysqli_query($con,$sql);
+			while($row = mysqli_fetch_array($res)){
+				$p = new Post(NULL);
+				$p->initMysql($row);
+				$this->posts->insertLast($p);
+			}	
+		}
+		protected function setCategories($con){
+			$sql = "SELECT *, k.ID as KID, 0 as RID FROM `Keys` k WHERE k.`Key` = 'Categories'";
+			$res = mysqli_query($con,$sql);
+			while($row = mysqli_fetch_array($res)){
+				$r = new Relation();
+				$r->initMysql($row);
+				$this->categories->insertLast($r);
+			}
+		}
+		protected function setPageSize($ps){ (int)$this->pageSize = $ps; }
 	}
 	
 	class Site extends Content{
@@ -127,11 +157,11 @@
 			return $a;
 		}
 		
-		protected function getAuthor(){ return $this->author; }
-		protected function getHTML(){ return $this->html; }
+		protected function getAuthor(){ return (string)$this->author; }
+		protected function getHTML(){ return (string)$this->html; }
 		
-		protected function setAuthor($a){ $this->author = $a; }
-		protected function setHTML($h){ $this->html = $h; }
+		protected function setAuthor($a){ (string)$this->author = $a; }
+		protected function setHTML($h){ (string)$this->html = $h; }
 	}
 	
 	class Comment extends HTMLDoc{
@@ -187,9 +217,10 @@
 			$a['CoverImage'] = $this->getCoverImage();
 			return $a;
 		}
-		
-		protected function getCoverImage(){ return $this->coverImage; }
-		protected function setCoverImage($i){ $this->coverImage = $i; }
+		protected function getCategories(){ $rels = Root::getRelationships(); return $rels['Categories']->getRels(); }
+		protected function getCoverImage(){ return (string)$this->coverImage; }
+		protected function setCategories($con){ Root::setRelation("Post","Categories",$con); }
+		protected function setCoverImage($i){ (string)$this->coverImage = $i; }
 	}
 	
 	class Page extends HTMLDoc{
@@ -213,7 +244,7 @@
 			return $a;
 		}
 		
-		protected function getURI(){ return $this->uri; }
-		protected function setURI($u){ $this->uri = $u; }
+		protected function getURI(){ return (string)$this->uri; }
+		protected function setURI($u){ (string)$this->uri = $u; }
 	}
 ?>
