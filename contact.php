@@ -210,7 +210,7 @@
 		}
 		protected function setAddresses($con){ 
 			$this->addresses = new DLList();
-			$sql = "SELECT a.* FROM Addresses a LEFT JOIN Relationships r ON a.ID = r.RID AND r.Key = 'AddressesParent' WHERE a.PID=".$this->getID()." AND r.Code = 'Contact'";
+			$sql = "SELECT a.* FROM Addresses a LEFT JOIN Relationships r ON a.ID = r.RID AND r.Key = 'AddressesParent' WHERE a.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."'";
 			$res = mysqli_query($con,$sql);
 			while($row = mysqli_fetch_array($res)){
 				$a = new Address(NULL);
@@ -220,7 +220,7 @@
 		}
 		protected function setPhones($con){
 			$this->phones = new DLList();
-			$sql = "SELECT p.* FROM Phones p LEFT JOIN Relationships r ON p.ID = r.RID AND r.Key = 'PhonesParent' WHERE p.PID=".$this->getID()." AND r.Code = 'Contact'";
+			$sql = "SELECT p.* FROM Phones p LEFT JOIN Relationships r ON p.ID = r.RID AND r.Key = 'PhonesParent' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."'";
 			$res = mysqli_query($con,$sql);
 			while($row = mysqli_fetch_array($res)){
 				$p = new Phone(NULL);
@@ -230,7 +230,7 @@
 		}
 		protected function setEmails($con){
 			$this->emails = new DLList();
-			$sql = "SELECT e.* FROM Emails e LEFT JOIN Relationships r ON e.ID = r.RID AND r.Key = 'EmailsParent' WHERE e.PID=".$this->getID()." AND r.Code = 'Contact'";
+			$sql = "SELECT e.* FROM Emails e LEFT JOIN Relationships r ON e.ID = r.RID AND r.Key = 'EmailsParent' WHERE e.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."'";
 			$res = mysqli_query($con,$sql);
 			while($row = mysqli_fetch_array($res)){
 				$p = new Email(NULL);
