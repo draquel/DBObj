@@ -2,43 +2,41 @@
 	class Content extends Root{
 		protected $title;
 		protected $desciption;
-		protected $hidden;
+		protected $active;
 		
-		public function __construct(){
-			Root::__construct();	
+		public function __construct($id,$t){
+			Root::__construct($id,$t);	
 			$this->title = NULL;
 			$this->description = NULL;
-			$this->hidden = NULL;
+			$this->active = NULL;
 		}
-		public function init($id,$t,$d,$h,$cd,$ud){
-			Root::init($id,$cd,$ud);
+/*		public function init($id,$t,$d,$h,$cd,$ud){
+			Root::init($id,"Content",$cd,$ud);
 			$this->setTitle($t);
 			$this->setDescription($d);
 			$this->setHidden($h);
-		}
+		}*/
 		public function initMysql($row){ 
 			Root::initMysql($row);
 			$this->setTitle($row['Title']);
 			$this->setDescription($row['Description']);
-			$this->setHidden($row['Hidden']);
+			$this->setActive($row['Active']);
 		}
 		public function toArray(){
 			$a = Root::toArray();
 			$a['Title'] = $this->getTitle();
-			$a['Description'] = $this->getDescription();
-			$a['Hidden'] = $this->getHidden();
+			$a['Description'] = $this->getDesciption();
+			$a['Active'] = $this->getActive();
 			return $a;
 		}
 		
 		protected function getTitle(){ return $this->title; }
 		protected function getDesciption(){ return $this->description; }
-		protected function getHTML(){ return $this->html; }
-		protected function getHidden(){ return $this->hidden; }
+		protected function getActive(){ return (int)$this->active; }
 		
-		protected function setAuthor($a){ $this->author = $a; }
 		protected function setTitle($t){ $this->title = $t; }
 		protected function setDescription($d){ $this->description = $d; }
-		protected function setHidden($h){ $this->hidden = $h; }
+		protected function setActive($a){ $this->active = (int)$a; }
 	}
 	
 	class Blog extends Content{
@@ -46,18 +44,18 @@
 		protected $categories;
 		protected $pageSize;
 		
-		public function __construct(){
-			Root::__construct();	
+		public function __construct($id){
+			Content::__construct($id,"Blogs");	
 			$this->posts = new DBOList();
-			$this->categorites = new DBOList();
+			$this->categorites = new DLList();
 			$this->pageSize = 0;
 		}
-		public function init($id,$t,$d,$h,$p,$c,$ps,$cd,$ud){
+/*		public function init($id,$t,$d,$h,$p,$c,$ps,$cd,$ud){
 			Content::init($id,$t,$d,$h,$cd,$ud);
 			$this->setPosts($p);
 			$this->setCategories($c);
 			$this->setPageSize($ps);
-		}
+		}*/
 		public function initMysql($row){ 
 			Content::initMysql($row);
 			$this->setPosts($row['Posts']);
@@ -83,6 +81,12 @@
 			$a['PageSize'] = $this->getPageSize();
 			return $a;
 		}
+		public function loadPosts($con){
+			$sql = "SELECT p.* FROM Posts LEFT JOIN Relationships ON (r.RID = p.ID and r.Key = 'Blog')";
+		}
+		public function loadPage($num,$con){
+			
+		}
 		
 		protected function getPosts(){ return $this->posts; }
 		protected function getCategories(){ return $this->categories; }
@@ -101,16 +105,16 @@
 		protected $author;
 		protected $html;
 		
-		public function __construct(){
-			Content::__construct();	
+		public function __construct($id,$t){
+			Content::__construct($id,$t);	
 			$this->author = NULL;
 			$this->html = NULL;
 		}
-		public function init($id,$a,$t,$d,$html,$h,$cd,$ud){
+/*		public function init($id,$a,$t,$d,$html,$h,$cd,$ud){
 			Content::init($id,$t,$d,$h,$cd,$ud);
 			$this->setAuthor($a);
 			$this->setHTML($html);
-		}
+		}*/
 		public function initMysql($row){ 
 			Content::initMysql($row);
 			$this->setAuthor($row['Author']);
@@ -134,15 +138,15 @@
 		protected $post_id;
 		protected $approved;
 		
-		public function __construct(){
-			HTMLDoc::__construct();
+		public function __construct($id){
+			HTMLDoc::__construct($id,"Comments");
 			$this->uri = NULL;
 		}
-		public function init($id,$a,$t,$d,$html,$h,$pid,$ap,$cd,$ud){
+/*		public function init($id,$a,$t,$d,$html,$h,$pid,$ap,$cd,$ud){
 			HTMLDoc::init($id,$a,$t,$d,$html,$h,$cd,$ud);
 			$this->setPostID($pid);
 			$this->setApproved($ap);
-		}
+		}*/
 		public function initMysql($row){ 
 			HTMLDoc::initMysql($row);
 			$this->setPostID($row['PostID']);
@@ -165,15 +169,15 @@
 	class Post extends HTMLDoc{
 		protected $coverImage;
 		
-		public function __construct(){
-			HTMLDoc::__construct();
+		public function __construct($id){
+			HTMLDoc::__construct($id,"Posts");
 			Root::setRelationships(array('Categories'=>new Relationship("Post","Category")));
 			$this->coverImage = NULL;
 		}
-		public function init($id,$a,$t,$d,$html,$h,$ci,$cd,$ud){
+/*		public function init($id,$a,$t,$d,$html,$h,$ci,$cd,$ud){
 			HTMLDoc::init($id,$a,$t,$d,$html,$h,$cd,$ud);
 			$this->setCoverImage($ci);
-		}
+		}*/
 		public function initMysql($row){ 
 			HTMLDoc::initMysql($row);
 			$this->setCoverImage($row['CoverImage']);
@@ -191,14 +195,14 @@
 	class Page extends HTMLDoc{
 		protected $uri;
 		
-		public function __construct(){
-			HTMLDoc::__construct();
+		public function __construct($id){
+			HTMLDoc::__construct($id,"Pages");
 			$this->uri = NULL;
 		}
-		public function init($id,$a,$t,$d,$html,$h,$u,$cd,$ud){
+/*		public function init($id,$a,$t,$d,$html,$h,$u,$cd,$ud){
 			HTMLDoc::init($id,$a,$t,$d,$html,$h,$cd,$ud);
 			$this->setURI($u);
-		}
+		}*/
 		public function initMysql($row){ 
 			HTMLDoc::initMysql($row);
 			$this->setAuthor($row['uri']);
