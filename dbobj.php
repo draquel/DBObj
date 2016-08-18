@@ -5,80 +5,92 @@
 	
 	class DBObj{
 		private $id;
+		private $table;
 		private $created;
 		private $updated;
 		
-		public function __construct(){
-			$this->id = NULL;
+		public function __construct($id,$t){
+			$this->id = $id;
+			$this->table = $t;
 			$this->created = NULL;
 			$this->updated = NULL;
 		}
-		public function init($id,$c,$u){
+/*		public function init($id,$t,$c,$u){
 			$this->setID($id);
+			$this->setTable($t);
 			$this->setCreated($c);
 			$this->setUpdated($u);
-		}
-		public function initMysql($row){ self::init($row['ID'],$row['Created'],$row['Updated']); }
+		}*/
+		public function initMysql($row){ $this->setID($row['ID']); $this->setCreated($row['Created']); $this->setUpdated($row['Updated']); }
 		public function dbRead($con){
 			if(isset($this->id) && $this->getID() != NULL && $this->getID() != 0){ 
-			$res = $this->db_select($con);
-			if($res){ $this->initMysql(mysql_fetch_array($res)); return true; }else{ return $res; }
+				$res = $this->db_select($con);
+				if($res){ $this->initMysql(mysqli_fetch_array($res)); return true; }else{ return $res; }
 			}else{ return false; }
 		}
 		public function dbWrite($con){
 			if(isset($this->id)){
-			if($this->getID() == 0){ return $this->db_insert($con); }else{ return $this->db_update($con); }
+				if($this->getID() == 0){ return $this->db_insert($con); }else{ return $this->db_update($con); }
 			}else{ return false; }
 		}
 		public function dbDelete($con){
 			if(isset($this->id)){
-			if($this->getID() == 0){ return false; }else{ return $this->db_delete($con); }
+				if($this->getID() == 0){ return false; }else{ return $this->db_delete($con); }
 			}else{ return false; }
 		}
 		
-		protected function db_select($con,$sql){ return mysql_query($sql,$con);	}
-		protected function db_insert($con,$sql){
-			$res = mysql_query($sql,$con);
-			if($res){ $this->setID(mysql_insert_id($con)); }
+		protected function db_select($con){
+			if($this->getID() != NULL && $this->getID() != 0){
+				$sql = "SELECT * FROM ".$this->table." WHERE ID = ".$this->getID();
+				return mysqli_query($con,$sql);
+			}else{ return false; }
+		}
+		protected function db_insert($con){
+			$a = $this->toArray(); $fields = ""; $values = "";
+			for($i = 0; $i < count($a); $i++){
+				if($fields != ""){ $fields .= ","; }
+				$fields .= ucfirst($key);
+				if($values != ""){ $values .= ","; }
+				if(gettype($value) == "integer"){ $values .= $value; }else{ $values .= "'".$value."'"; }
+			}
+			$sql = "INSERT INTO ".$this->table." (".$fields.") VALUES (".$values.")";
+			$res = mysqli_query($sql,$con);
+			if($res){ $this->setID(mysqli_insert_id($con)); }
 			return $res;
 		}
-		protected function db_update($con,$sql){ return mysql_query($sql,$con);	}
-		protected function mysqlEsc(){
-			$this->setID(mysql_escape_string($this->getID()));
-			$this->setCreated(mysql_escape_string($this->getCreated(NULL)));
-			$this->setUpdated(mysql_escape_string($this->getUpdated(NULL)));			
+		protected function db_update($con){ 
+			$a = $this->toArray();
+			$sql = "UPDATE ".$this->getTable()." SET ";
+			foreach($a as $key => $val){
+				$sql .= ucfirst($key)." = ";
+				if(gettype($value) == "integer"){ $sql .= $val; }else{ $sql .= "'".$val."'"; }
+			}
+			$sql .= " WHERE ID = ".$this->getID();
+			return mysqli_query($con,$sql);		
 		}
-		protected function toArray(){ return array("ID"=>$this->getID(),"Created"=>$this->getCreated("Y-m-d"),"Updated"=>$this->getUpdated("Y-m-d"));}
+		protected function mysqlEsc(){
+			$this->setID(mysqli_escape_string($this->getID()));
+			$this->setCreated(mysqli_escape_string($this->getCreated(NULL)));
+			$this->setUpdated(mysqli_escape_string($this->getUpdated(NULL)));			
+		}
+		public function toArray(){ return array("ID"=>$this->getID(),"Created"=>$this->getCreated("Y-m-d"),"Updated"=>$this->getUpdated("Y-m-d"));}
+		
 		protected function getID(){ return (int)$this->id; }
+		protected function getTable(){ return $this->table; }
 		protected function getCreated($ds){ if(isset($ds) && $ds != NULL){ return (string)date($ds,$this->created); }else{ return (int)$this->created; } }
 		protected function getUpdated($ds){ if(isset($ds) && $ds != NULL){ return (string)date($ds,$this->updated); }else{ return (int)$this->updated; } }
+		
 		protected function setID($id){ $this->id = (int)$id; }
+		protected function setTable($t){ $this->table = $t; }
 		protected function setCreated($c){ $this->created = (int)$c; }
 		protected function setUpdated($u){ $this->updated = (int)$u; }
-	}
-
-	class DBOList extends DLList{
-		private $table;
-		private $name;
-		
-		public function __construct(){
-			DLList::__construct();
-			$this->table = NULL;
-			$this->name = NULL;
-		}
-		
-		protected function getTable(){ $this->table; }
-		protected function getName(){ $this->name; }
-		
-		protected function setTable($t){ $this->table = $t; }
-		protected function setName($n){ $this->name = $n; }
 	}
 
 	class Root extends DBObj{
 		private $relationships;
 		
-		public function __construct(){
-			DBObj::__construct();
+		public function __construct($id,$t){
+			DBObj::__construct($id,$t);
 			$this->relationships = array();
 		}
 		public function dbWrite($con){
@@ -94,15 +106,17 @@
 				return $succ;
 			}else{ return false; }
 		}
-		protected function toArray(){
+		public function toArray(){
 			$p = DBObj::toArray();
 			$p['Rels'] = array();
 			$a = $this->getRelationships();
-			foreach($a as $k => $v){ $p['Rels'][$k] = $v->toArray(); }
+			if(count($a) > 0){ foreach($a as $k => $v){ $p['Rels'][$k] = $v->toArray(); } }
 			return $p;
 		}
+		
 		protected function getRelationships(){ return $this->relationships; }
-		protected function getRelation($key){ return $this->relationships[$key]; }
+		protected function getRelation($key){ if(isset($this->relationships[$key])){ return $this->relationships[$key]; }else{ return false; } }
+		
 		protected function setRelationships($rel){ if(is_array($rel)){ $this->relationships = $rel; return TRUE; }else{ return FALSE; } }
 		protected function setRelation($root,$key,$con){
 			$this->relationships[$key] = new Relationship($root,$key);
@@ -117,19 +131,19 @@
 		private $definition;
 		
 		public function __construct(){
-			DBObj::__construct();
+			DBObj::__construct(NULL,"Relations");
 			$this->rid = NULL;
 			$this->kid = NULL;
 			$this->code = NULL;
 			$this->definition = NULL;
 		}
-		public function init($id,$cd,$ud,$rid,$kid,$code,$def){
-			DBObj::init($id,$cd,$ud);
+/*		public function init($id,$cd,$ud,$rid,$kid,$code,$def){
+			DBObj::init($id,"Relations",$cd,$ud);
 			$this->setRID($rid);
 			$this->setKID($kid);
 			$this->setCode($code);
 			$this->setDefinition($def);
-		}
+		}*/
 		public function initMysql($row){ $this->init($row['ID'],$row['Created'],$row['Updated'],$row['RID'],$row['KID'],$row['Code'],$row['Definition']); }
 		public function toArray(){
 			$p = DBObj::toArray();
@@ -142,15 +156,15 @@
 		protected function db_select($con){
 			$this->mysqlEsc();
 			$sql = "SELECT * FROM `Relationships` WHERE `ID`=\"".$this->getID()."\"";
-			return mysql_query($sql,$con);
+			return mysqli_query($sql,$con);
 		}
 		protected function db_insert($con){
 			$this->mysqlEsc();
 			$time = time();
 			$sql = "INSERT INTO `Relations` (`ID`,`RID`,`KID`,`Created`,`Updated`) VALUES (NULL,\"".$this->getRID()."\",\"".$this->getKID()."\",\"".$time."\",\"".$time."\")";
-			$res = mysql_query($sql,$con);
+			$res = mysqli_query($sql,$con);
 			if($res){ 
-				$this->setID(mysql_insert_id($con)); 
+				$this->setID(mysqli_insert_id($con)); 
 				$this->setCreated($time);
 				$this->setUpdated($time);
 			}
@@ -160,21 +174,21 @@
 			$this->mysqlEsc();
 			$time = time();
 			$sql = "UPDATE `Relations` SET `RID`=\"".$this->getRID()."\",`KID`=\"".$this->getKID()."\",`Updated`=\"".$time."\" WHERE `ID`=\"".$this->getID()."\"";
-			$res = mysql_query($sql,$con);
+			$res = mysqli_query($sql,$con);
 			if($res){ $this->setUpdated($time); }
 			return $res;
 		}
 		protected function db_delete($con){
 			$this->mysqlEsc();
 			$sql = "DELETE FROM `Relations` WHERE `ID`=".$this->getID();
-			return mysql_query($sql,$con);
+			return mysqli_query($sql,$con);
 		}
 		protected function mysqlEsc(){
 			DBObj::mysqlEsc();
-			$this->setKID(mysql_escape_string($this->getKID()));
-			$this->setRID(mysql_escape_string($this->getRID()));
-			$this->setCode(mysql_escape_string($this->getCode()));
-			$this->setDefinition(mysql_escape_string($this->getDefinition()));
+			$this->setKID(mysqli_escape_string($this->getKID()));
+			$this->setRID(mysqli_escape_string($this->getRID()));
+			$this->setCode(mysqli_escape_string($this->getCode()));
+			$this->setDefinition(mysqli_escape_string($this->getDefinition()));
 		}
 		public function setRID($id){ $this->rid = (int)$id;}
 		private function setKID($id){ $this->kid = (int)$id;}
@@ -204,9 +218,9 @@
 		public function setRels($con,$id){
 			$this->mysqlEsc();
 			$this->relations = new DLList();
-			$sql = "SELECT * FROM Relationships WHERE `Key` = '".$this->getKey()."' AND `RID`=".mysql_escape_string($id);
-			$res = mysql_query($sql,$con);
-			while($row = mysql_fetch_array($res)){
+			$sql = "SELECT * FROM Relationships WHERE `Key` = '".$this->getKey()."' AND `RID`=".mysqli_escape_string($id);
+			$res = mysqli_query($sql,$con);
+			while($row = mysqli_fetch_array($res)){
 				$r = new Relation();
 				$r->initMysql($row);
 				$this->relations->insertLast($r);
@@ -247,13 +261,30 @@
 			$this->relations = $nRels;
 		}
 		private function mysqlEsc(){
-			$this->setRoot(mysql_escape_string($this->getRoot()));
-			$this->setKey(mysql_escape_string($this->getKey()));
+			$this->setRoot(mysqli_escape_string($this->getRoot()));
+			$this->setKey(mysqli_escape_string($this->getKey()));
 		}
 		private function setRoot($r){ $this->root = ucfirst($r); }
 		private function setKey($k){ $this->key = ucfirst($k); }
+		
 		private function getRoot(){ return (string)$this->root; }
 		private function getKey(){ return (string)$this->key; }
+	}
+
+	class DBOList extends DLList{
+		public function __construct(){
+			DLList::__construct();
+		}
+		public function getKeyList($key){
+			$result = new DLList();
+			$node = DLList::getFirstNode();
+			for($i = 0; $i < DLList::size(); $i += 1){
+				$d = $node->readNode();
+				if($d->getRelation($key)){ $result->insertLast($d); }
+				$node = $node->getNext();
+			}
+			if($result->size() > 0){ return $result; }else{ return false; }
+		}
 	}
 	
 	include("contact_info.php");
