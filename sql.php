@@ -29,8 +29,8 @@
 			private function setPass($p){$this->pass = $p;}
 			private function setServer($s){$this->server = $s;}
 			private function setCon($db){
-				$this->con['$db'] = mysqli_connect($this->server,$this->user,$this->pass);
-				return mysqli_select_db($db, $this->con['$db']);
+				$this->con['$db'] = mysqli_connect($this->server,$this->user,$this->pass,$db);
+				return $this->con['$db'];
 			}
 			private function getCon($db){
 				if(!$this->isConnected($db)){ return FALSE; }
