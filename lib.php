@@ -6,7 +6,6 @@
 		str_replace("!","&#33;",$s);
 		str_replace("\"","&#39;",$s);
 		str_replace("#","&#35;",$s);
-		
 		str_replace("%","&#37;",$s);
 		str_replace("&","&#38;",$s);
 		str_replace("'","&#39;",$s);
@@ -30,6 +29,37 @@
 		str_replace("|","&#124;",$s);
 		str_replace("}","&#125;",$s);
 		str_replace("~","&#126;",$s);
+		return $s;
+	}
+	function str_unsanitize($s){
+		//Replace HTML Codes With Symbols
+		str_replace("&#32;"," ",$s);
+		str_replace("&#33;","!",$s);
+		str_replace("&#39;","\"",$s);
+		str_replace("#","&#35;",$s);
+		str_replace("&#37;","%",$s);
+		str_replace("&#38;","&",$s);
+		str_replace("&#39;","'",$s);
+		str_replace("&#40;","(",$s);
+		str_replace("&#41;",")",$s);
+		str_replace("&#42;","*",$s);
+		str_replace("&#43;","+",$s);
+		str_replace("&#44;",",",$s);
+		str_replace("&#45;","-",$s);
+		str_replace("&#46;",".",$s);
+		str_replace("&#47;","/",$s);
+		str_replace("&#58;",":",$s);
+		str_replace("&#59;",";",$s);
+		str_replace("&#60;","<",$s);
+		str_replace("&#62;",">",$s);
+		str_replace("&#63;","?",$s);
+		str_replace("&#64;","@",$s);
+		str_replace("&#95;","_",$s);
+		str_replace("&#96;","`",$s);
+		str_replace("&#123;","{",$s);
+		str_replace("&#124;","|",$s);
+		str_replace("&#125;","}",$s);
+		str_replace("&#126;","~",$s);
 		return $s;
 	}
 	function escape_str(){
