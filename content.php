@@ -90,39 +90,27 @@
 			$i = 1;
 			if($num > 1){ $start = 1 + (($num-1)*$this->getPageSize()); $end = $num*$this->getPageSize(); }else{ $start = 1; $end = $this->getPageSize(); }
 			while($post != NULL){
-				if($i < $start){  /*continue;*/ }
-				elseif($i > $this->getPosts()->size() || $i > $end){ break; }
-				elseif($i >= $start && $i <= $end){
+				if($i >= $start && $i <= $end){
 					$p = $post->readNode();	
 					$page->insertLast($p);	
-				}
+				}elseif($i > $this->getPosts()->size() || $i > $end){ break; }
 				$i++;
 				$post = $post->getNext();
 			}
 			return $page;
 		}
 		public function getArchivePage($num,$def){
-			$page = new DLList(); $posts = new DLList();
+			$page = new DLList();
 			$archive = $this->getPosts()->getArchive();
-			//foreach($archive as $key => $value){ if($key == $def){ foreach($value as $v){ $posts->insertLast($v); } break;} }
-			foreach($archive[$def] as $p){ $posts->insertLast($p); }
-			$post = $posts->getFirstNode();
-			$i = 1;
-			if($num > 1){ $start = 1 + (($num-1)*$this->getPageSize()); $end = $num*$this->getPageSize(); }else{ $start = 1; $end = $this->getPageSize(); }
-			while($post != NULL){
-				$inArch = false;
-				$p = $post->readNode()->toArray();
-				if(date("Ym",strtotime($p['Created'])) == $def){ $inArch = true; }
-				if($inArch){
-					if($i < $start){  }
-					elseif($i > $this->getPosts()->size() || $i > $end){ break; }
-					elseif($i >= $start && $i <= $end){
-						$p = $post->readNode();
-						$page->insertLast($p);	
-					}
-					$i++;
+			$posts = $archive[$def];
+			if($num > 1){ $start = ($num-1)*$this->getPageSize(); $end = $num*$this->getPageSize()-1; }else{ $start = 0; $end = $this->getPageSize()-1; }
+			for($i = 0; $i < count($posts); $i++){
+				$p = $posts[$i]->toArray();
+				if(date("Ym",$p['Created']) == $def){
+					if($i >= $start && $i <= $end){
+						$page->insertLast($posts[$i]);	
+					}elseif($i > $this->getPosts()->size() || $i > $end){ break; }
 				}
-				$post = $post->getNext();
 			}
 			return $page;
 		}
@@ -136,12 +124,10 @@
 				$p = $post->readNode()->toArray();
 				if(count($p['Rels']['Category']) > 0){ foreach($p['Rels']['Category'] as $v){ if($v['Definition'] == $def){ $hasCat = true; break; } } }
 				if($hasCat){
-					if($i < $start){  /*continue;*/ }
-					elseif($i > $this->getPosts()->size() || $i > $end){ break; }
-					elseif($i >= $start && $i <= $end){
+					if($i >= $start && $i <= $end){
 						$p = $post->readNode();	
 						$page->insertLast($p);	
-					}
+					}elseif($i > $this->getPosts()->size() || $i > $end){ break; }
 					$i++;
 				}
 				$post = $post->getNext();
