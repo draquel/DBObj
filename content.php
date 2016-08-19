@@ -87,12 +87,62 @@
 		public function getPage($num){
 			$page = new DLList();
 			$post = $this->getPosts()->getFirstNode();
-			for($i = ($num-1)*$this->getPageSize(); $i <= ($num * $this->getPageSize()); $i++){
-				if($i <= ($num-1)*$this->getPageSize()){ continue; }
-				if($i > $this->getPosts()->size() || $i > ($num * $this->getPageSize())){ break; }
-				if($i > ($num-1)*$this->getPageSize() && $i <= ($num * $this->getPageSize())){
+			$i = 1;
+			if($num > 1){ $start = 1 + (($num-1)*$this->getPageSize()); $end = $num*$this->getPageSize(); }else{ $start = 1; $end = $this->getPageSize(); }
+			while($post != NULL){
+				if($i < $start){  /*continue;*/ }
+				elseif($i > $this->getPosts()->size() || $i > $end){ break; }
+				elseif($i >= $start && $i <= $end){
 					$p = $post->readNode();	
 					$page->insertLast($p);	
+				}
+				$i++;
+				$post = $post->getNext();
+			}
+			return $page;
+		}
+		public function getArchivePage($num,$def){
+			$page = new DLList(); $posts = new DLList();
+			$archive = $this->getPosts()->getArchive();
+			//foreach($archive as $key => $value){ if($key == $def){ foreach($value as $v){ $posts->insertLast($v); } break;} }
+			foreach($archive[$def] as $p){ $posts->insertLast($p); }
+			$post = $posts->getFirstNode();
+			$i = 1;
+			if($num > 1){ $start = 1 + (($num-1)*$this->getPageSize()); $end = $num*$this->getPageSize(); }else{ $start = 1; $end = $this->getPageSize(); }
+			while($post != NULL){
+				$inArch = false;
+				$p = $post->readNode()->toArray();
+				if(date("Ym",strtotime($p['Created'])) == $def){ $inArch = true; }
+				if($inArch){
+					if($i < $start){  }
+					elseif($i > $this->getPosts()->size() || $i > $end){ break; }
+					elseif($i >= $start && $i <= $end){
+						$p = $post->readNode();
+						$page->insertLast($p);	
+					}
+					$i++;
+				}
+				$post = $post->getNext();
+			}
+			return $page;
+		}
+		public function getCategoryPage($num,$def){
+			$page = new DLList();
+			$post = $this->getPosts()->getFirstNode();
+			$i = 1;
+			if($num > 1){ $start = 1 + (($num-1)*$this->getPageSize()); $end = $num*$this->getPageSize(); }else{ $start = 1; $end = $this->getPageSize(); }
+			while($post != NULL){
+				$hasCat = false;
+				$p = $post->readNode()->toArray();
+				if(count($p['Rels']['Category']) > 0){ foreach($p['Rels']['Category'] as $v){ if($v['Definition'] == $def){ $hasCat = true; break; } } }
+				if($hasCat){
+					if($i < $start){  /*continue;*/ }
+					elseif($i > $this->getPosts()->size() || $i > $end){ break; }
+					elseif($i >= $start && $i <= $end){
+						$p = $post->readNode();	
+						$page->insertLast($p);	
+					}
+					$i++;
 				}
 				$post = $post->getNext();
 			}
@@ -107,16 +157,17 @@
 		public function getPageSize(){ return (int)$this->pageSize; }
 		
 		protected function setPosts($con){
-			$sql = "SELECT p.* FROM Posts p LEFT JOIN Relationships r ON p.ID = r.RID AND r.Key = 'PostParent' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."'";
+			$sql = "SELECT p.* FROM Posts p LEFT JOIN Relationships r ON p.ID = r.RID AND r.Key = 'PostParent' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' ORDER BY p.Created DESC";
 			$res = mysqli_query($con,$sql);
 			while($row = mysqli_fetch_array($res)){
 				$p = new Post(NULL);
 				$p->initMysql($row);
+				$p->setCategories($con);
 				$this->posts->insertLast($p);
 			}	
 		}
 		protected function setCategories($con){
-			$sql = "SELECT *, k.ID as KID, 0 as RID FROM `Keys` k WHERE k.`Key` = 'Categories'";
+			$sql = "SELECT *, k.ID as KID, 0 as RID FROM `Keys` k WHERE k.`Key` = 'Category'";
 			$res = mysqli_query($con,$sql);
 			while($row = mysqli_fetch_array($res)){
 				$r = new Relation();
@@ -201,7 +252,7 @@
 		
 		public function __construct($id){
 			HTMLDoc::__construct($id,"Posts");
-			Root::setRelationships(array('Categories'=>new Relationship("Post","Category")));
+			Root::setRelationships(array('Category'=>new Relationship("Post","Category")));
 			$this->coverImage = NULL;
 		}
 /*		public function init($id,$a,$t,$d,$html,$h,$ci,$cd,$ud){
@@ -217,9 +268,9 @@
 			$a['CoverImage'] = $this->getCoverImage();
 			return $a;
 		}
-		protected function getCategories(){ $rels = Root::getRelationships(); return $rels['Categories']->getRels(); }
+		protected function getCategories(){ $rels = Root::getRelationships(); return $rels['Category']->getRels(); }
 		protected function getCoverImage(){ return (string)$this->coverImage; }
-		protected function setCategories($con){ Root::setRelation("Post","Categories",$con); }
+		public function setCategories($con){ Root::setRelation("Post","Category",$con); }
 		protected function setCoverImage($i){ (string)$this->coverImage = $i; }
 	}
 	

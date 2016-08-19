@@ -280,22 +280,30 @@
 		public function __construct(){
 			DLList::__construct();
 		}
-		public function getKeyList($key){
+/*		public function getKeyList($key,$code){
 			$result = new DLList();
 			$node = DLList::getFirstNode();
 			for($i = 0; $i < DLList::size(); $i += 1){
 				$d = $node->readNode();
-				if($d->getRelation($key)){ $result->insertLast($d); }
+				if($rel = $d->getRelation($key)){
+					$r = $rel->getRels()->getFirstNode();
+					while($r != NULL){ 
+						$a = $r->readNode()->toArray();
+						if($a['Code'] == $code){ $result->insertLast($r); break; } 
+						$r = $r->getNext(); 
+					}
+				}
 				$node = $node->getNext();
 			}
 			if($result->size() > 0){ return $result; }else{ return false; }
-		}
+		}*/
 		public function getArchive(){
 			$result = array();
 			$node = DLList::getFirstNode();
 			for($i = 0; $i < DLList::size(); $i += 1){
-				$d = $node->readNode()->toArray();
-				$ds = date("M Y",$d['Created']);
+				$d = $node->readNode();
+				$da = $d->toArray();
+				$ds = date("Ym",$da['Created']);
 				if(!isset($result[$ds])){ $result[$ds] = array(); }
 				$result[$ds][] = $d;
 				$node = $node->getNext();
