@@ -20,7 +20,7 @@
 			$this->setLLogin($ld);
 		}*/
 		public function initMysql($row){
-			Contact::initMysql($row,FALSE);
+			Contact::initMysql($row);
 			$this->setUname($row['Username']);
 			$this->setPass($row['Password']);
 			$this->setLLogin($row['LLogin']);
