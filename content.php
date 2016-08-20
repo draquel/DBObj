@@ -30,9 +30,9 @@
 			return $a;
 		}
 		
-		protected function getTitle(){ return (string)$this->title; }
-		protected function getDesciption(){ return (string)$this->description; }
-		protected function getActive(){ return (int)$this->active; }
+		public function getTitle(){ return (string)$this->title; }
+		public function getDesciption(){ return (string)$this->description; }
+		public function getActive(){ return (int)$this->active; }
 		
 		protected function setTitle($t){ (string)$this->title = $t; }
 		protected function setDescription($d){ (string)$this->description = $d; }
@@ -42,11 +42,13 @@
 	class Blog extends Content{
 		protected $pageSize;
 		protected $posts;
+		protected $users;
 		protected $categories;
 		
 		public function __construct($id){
 			Content::__construct($id,"Blogs");	
 			$this->posts = new DBOList("Posts");
+			$this->users = new DBOList("Users");
 			$this->categories = new DLList();
 			$this->pageSize = 0;
 		}
@@ -134,11 +136,39 @@
 			}
 			return $page;
 		}
+		public function getAuthorPage($num,$def){
+			$author = $this->getUsers()->getFirstNode();
+			while($author != NULL){
+				$a = $author->readNode()->toArray();
+				if($a['First']." ".$a['Last'] == $def){ break; }
+				$author = $author->getNext();
+			}
+			$page = new DLList();
+			$post = $this->getPosts()->getFirstNode();
+			$i = 1;
+			if($num > 1){ $start = 1 + (($num-1)*$this->getPageSize()); $end = $num*$this->getPageSize(); }else{ $start = 1; $end = $this->getPageSize(); }
+			while($post != NULL){
+				$byAuth = false;
+				$p = $post->readNode()->toArray();
+				if($a['ID'] == $p['Author']){ $byAuth = true; }				
+				if($byAuth){
+					if($i >= $start && $i <= $end){
+						$p = $post->readNode();	
+						$page->insertLast($p);	
+					}elseif($i > $this->getPosts()->size() || $i > $end){ break; }
+					$i++;
+				}
+				$post = $post->getNext();
+			}
+			return $page;
+		}
 		public function load($con){
 			$this->setPosts($con);
 			$this->setCategories($con);
+			$this->setUsers($con);
 		}
 		public function getPosts(){ return $this->posts; }
+		public function getUsers(){ return $this->users; }
 		public function getCategories(){ return $this->categories; }
 		public function getPageSize(){ return (int)$this->pageSize; }
 		
@@ -150,6 +180,16 @@
 				$p->initMysql($row);
 				$p->setCategories($con);
 				$this->posts->insertLast($p);
+			}	
+		}
+		protected function setUsers($con){
+			$sql = "SELECT * FROM Users ORDER BY Created DESC";
+			$res = mysqli_query($con,$sql);
+			while($row = mysqli_fetch_array($res)){
+				$u = new User(NULL);
+				$u->initMysql($row);
+				$u->setContactInfo($con);
+				$this->users->insertLast($u);
 			}	
 		}
 		protected function setCategories($con){
