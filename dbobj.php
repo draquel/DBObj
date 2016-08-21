@@ -220,6 +220,17 @@
 			$this->setRoot($root);
 			$this->setKey($key);
 		}
+		public function initMysql(/*$row,*/$rels = NULL){
+			/*$this->setRoot($row['Root']);
+			$this->setKey($row['Key']);*/
+			if(is_array($rels)){
+				for($i = 0;$i < count($rels); $i++){
+					$r = new Relation();
+					$r->initMysql($rels[$i]);
+					$this->relations->insertLast($r);
+				}
+			}
+		}
 		public function setRels($con,$id){
 			/*$this->mysqlEsc();*/
 			$this->relations = new DLList();
