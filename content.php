@@ -162,10 +162,10 @@
 			}
 			return $page;
 		}
-		public function load($con){
-			$this->setPosts($con);
-			$this->setCategories($con);
-			$this->setUsers($con);
+		public function load($con,$p = true,$c = true,$u = true){
+			if($p){ $this->setPosts($con); }
+			if($c){ $this->setCategories($con); }
+			if($u){ $this->setUsers($con); }
 		}
 		public function getPosts(){ return $this->posts; }
 		public function getUsers(){ return $this->users; }
@@ -173,12 +173,11 @@
 		public function getPageSize(){ return (int)$this->pageSize; }
 		
 		protected function setPosts($con){
-			$sql = "SELECT p.* FROM Posts p LEFT JOIN Relationships r ON p.ID = r.RID AND r.Key = 'PostParent' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' ORDER BY p.Created DESC";
+			$sql = "SELECT p.*, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM Posts p LEFT JOIN Relationships r ON p.ID = r.RID AND r.Key = 'PostParent' LEFT JOIN Relationships r2 ON p.ID = r2.RID AND r2.Key = 'Category' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY p.ID ORDER BY p.Created DESC";
 			$res = mysqli_query($con,$sql);
 			while($row = mysqli_fetch_array($res)){
 				$p = new Post(NULL);
 				$p->initMysql($row);
-				$p->setCategories($con);
 				$this->posts->insertLast($p);
 			}	
 		}
@@ -288,6 +287,14 @@
 		public function initMysql($row){ 
 			HTMLDoc::initMysql($row);
 			$this->setCoverImage($row['CoverImage']);
+			if(isset($row['Categories'])){
+				$row['Categories'] = explode(";",$row['Categories']);
+				$categories = array();
+				foreach($row['Categories'] as $cat){ $a = explode(":",$cat); $categories[] = array("ID"=>$a[0],"RID"=>$a[1],"KID"=>$a[2],"Key"=>$a[3],"Code"=>$a[4],"Definition"=>$a[5]); }
+				$relations = $this->getRelationships();
+				$relations['Category']->initMysql($categories);
+				$this->setRelationships($relations);
+			}
 		}
 		public function toArray(){
 			$a = HTMLDoc::toArray();
