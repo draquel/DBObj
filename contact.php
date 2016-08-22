@@ -84,8 +84,9 @@
 				for($i = 0; $i < count($ph); $i += 1){
 					$p = explode(":",$ph[$i]);
 					for($j = 0; $j < count($p); $j += 1){ if(!isset($p[$j])){ $p[$j] = NULL;} }
-					$po = new Phone();
-					$po->init($p[0],$p[1],$p[2],$p[3],$p[4],$p[5],$p[6],$p[7],$p[8],$p[9]);
+					$po = new Phone(NULL);
+					//$po->init($p[0],$p[1],$p[2],$p[3],$p[4],$p[5],$p[6],$p[7],$p[8],$p[9]);
+					$po->initMysql(array("ID"=>$p[0],"Created"=>$p[1],"Updated"=>$p[2],"Name"=>$p[3],"PID"=>$p[4],"Primary"=>$p[5],"Region"=>$p[6],"Area"=>$p[7],"Number"=>$p[8],"Ext"=>$p[9]));
 					$this->getPhones()->insertLast($po);
 				}
 			}
@@ -95,8 +96,9 @@
 				for($i = 0; $i < count($em); $i += 1){
                 	$e = explode(":",$em[$i]);
 					for($j = 0; $j < count($e); $j += 1){ if(!isset($e[$j])){ $e[$j] = NULL;} }
-					$eo = new Email();
-					$eo->init($e[0],$e[1],$e[2],$e[3],$e[4],$e[5],$e[6]);
+					$eo = new Email(NULL);
+					//$eo->init($e[0],$e[1],$e[2],$e[3],$e[4],$e[5],$e[6]);
+					$eo->initMysql(array("ID"=>$e[0],"Created"=>$e[1],"Updated"=>$e[2],"Name"=>$e[3],"PID"=>$e[4],"Primary"=>$e[5],"Address"=>$e[6]));
 					$this->getEmails()->insertLast($eo);
                 }
 			}
@@ -106,8 +108,9 @@
 				for($i = 0; $i < count($ad); $i += 1){
                 	$a = explode(":",$ad[$i]);
 					for($j = 0; $j < count($a); $j += 1){ if(!isset($a[$j])){ $a[$j] = NULL;} }
-					$ao = new Address();
-					$ao->init($a[0],$a[1],$a[2],$a[3],$a[4],$a[5],$a[6],$a[7],$a[8],$a[9],$a[10]);
+					$ao = new Address(NULL);
+					//$ao->init($a[0],$a[1],$a[2],$a[3],$a[4],$a[5],$a[6],$a[7],$a[8],$a[9],$a[10]);
+					$ao->initMysql(array("ID"=>$a[0],"Created"=>$a[1],"Updated"=>$a[2],"Name"=>$a[3],"PID"=>$a[4],"Primary"=>$a[5],"Address"=>$a[6],"Address2"=>$a[7],"City"=>$a[8],"State"=>$a[9],"Zip"=>$a[10]));
 					$this->getAddresses()->insertLast($ao);
 				}
 			}
