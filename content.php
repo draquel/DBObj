@@ -2,12 +2,14 @@
 	class Content extends Root{
 		protected $title;
 		protected $desciption;
+		protected $keywords;
 		protected $active;
 		
 		public function __construct($id,$t){
 			Root::__construct($id,$t);	
 			$this->title = NULL;
 			$this->description = NULL;
+			$this->keywords = array();
 			$this->active = NULL;
 		}
 /*		public function init($id,$t,$d,$h,$cd,$ud){
@@ -20,35 +22,39 @@
 			Root::initMysql($row);
 			$this->setTitle($row['Title']);
 			$this->setDescription($row['Description']);
+			$this->setKeywords($row['Keywords']);
 			$this->setActive($row['Active']);
 		}
 		public function toArray(){
 			$a = Root::toArray();
 			$a['Title'] = $this->getTitle();
 			$a['Description'] = $this->getDesciption();
+			$a['Keywords'] = $this->getKeywords();
 			$a['Active'] = $this->getActive();
 			return $a;
 		}
 		
 		public function getTitle(){ return (string)$this->title; }
 		public function getDesciption(){ return (string)$this->description; }
+		public function getKeywords(){ return (string)$this->keywords; }
 		public function getActive(){ return (int)$this->active; }
 		
 		protected function setTitle($t){ (string)$this->title = $t; }
 		protected function setDescription($d){ (string)$this->description = $d; }
+		protected function setKeywords($k){ (string)$this->keywords = $k; }
 		protected function setActive($a){ $this->active = (int)$a; }
 	}
 	
 	class Blog extends Content{
 		protected $pageSize;
 		protected $posts;
-		protected $users;
+		/*protected $users;*/
 		protected $categories;
 		
 		public function __construct($id){
 			Content::__construct($id,"Blogs");	
-			$this->posts = new DBOList("Posts");
-			$this->users = new DBOList("Users");
+			$this->posts = new DBOList();
+			/*$this->users = new DBOList();*/
 			$this->categories = new DLList();
 			$this->pageSize = 0;
 		}
@@ -136,8 +142,8 @@
 			}
 			return $page;
 		}
-		public function getAuthorPage($num,$def){
-			$author = $this->getUsers()->getFirstNode();
+		public function getAuthorPage($num,$def,$users){
+			$author = $users->getFirstNode();
 			while($author != NULL){
 				$a = $author->readNode()->toArray();
 				if($a['First']." ".$a['Last'] == $def){ break; }
@@ -165,10 +171,34 @@
 		public function load($con,$p = true,$c = true,$u = true){
 			if($p){ $this->setPosts($con); }
 			if($c){ $this->setCategories($con); }
-			if($u){ $this->setUsers($con); }
+			/*if($u){ $this->setUsers($con); }*/
+		}
+		public function rssGenFeed($domain,$path){
+			$out = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>
+            <rss version=\"2.0\" xmlns:atom=\"http://www.w3.org/2005/Atom\">
+                <channel>
+                    <title>".$this->getTitle()."</title>
+                    <link>".$domain."</link>
+                    <description>".$this->getDesciption()."</description>
+                    <atom:link href=\"".$domain.$path."\" rel=\"self\" type=\"application/rss+xml\" />";
+                $post = $_SESSION['Blog']->getPosts()->getFirstNode();
+                while($post != NULL){
+                    $a = $post->readNode()->toArray();
+                    $out .= "
+                    <item>
+                        <title>".$a['Title']."</title>
+                        <link>".$domain."/blog/p/".$a['ID']."</link>
+                        <guid>".$domain."/blog/p/".$a['ID']."</guid>
+                        <description>".$a['Description']."</description>
+                    </item>";
+                    $post = $post->getNext();
+                }
+                $out .= "</channel>
+            </rss>";
+			return $out;
 		}
 		public function getPosts(){ return $this->posts; }
-		public function getUsers(){ return $this->users; }
+		/*public function getUsers(){ return $this->users; }*/
 		public function getCategories(){ return $this->categories; }
 		public function getPageSize(){ return (int)$this->pageSize; }
 		
@@ -181,8 +211,8 @@
 				$this->posts->insertLast($p);
 			}	
 		}
-		protected function setUsers($con){
-			$sql = "SELECT * FROM Users ORDER BY Created DESC";
+/*		protected function setUsers($con){
+			$sql = "SELECT u.*, group_concat(distinct concat(r.ID,':',r.RID,':',r.KID,':',r.Key,':',r.Code,':',r.Definition) separator ';') AS `Groups`, group_concat(distinct concat(`p`.`ID`,':',`p`.`Created`,':',`p`.`Updated`,':',`p`.`Name`,':',`p`.`PID`,':',`p`.`Primary`,':',`p`.`Region`,':',`p`.`Area`,':',`p`.`Number`,':',`p`.`Ext`) separator ';') AS `Phones`, group_concat(distinct concat(`a`.`ID`,':',`a`.`Created`,':',`a`.`Updated`,':',`a`.`Name`,':',`a`.`PID`,':',`a`.`Primary`,':',`a`.`Address`,':',`a`.`Address2`,':',`a`.`City`,':',`a`.`State`,':',`a`.`Zip`) separator ';') AS `Addresses`, group_concat(distinct concat(`e`.`ID`,':',`e`.`Created`,':',`e`.`Updated`,':',`e`.`Name`,':',`e`.`PID`,':',`e`.`Primary`,':',`e`.`Address`) separator ';') AS `Emails` FROM Users u LEFT JOIN Relationships r ON u.ID = r.RID AND r.Key = 'Group' LEFT JOIN `Addresses` `a` on `a`.`PID` = `u`.`ID` LEFT JOIN `Phones` `p` on `p`.`PID` = `u`.`ID` LEFT JOIN `Emails` `e` on `e`.`PID` = `u`.`ID` GROUP BY u.ID ORDER BY u.Created DESC";
 			$res = mysqli_query($con,$sql);
 			while($row = mysqli_fetch_array($res)){
 				$u = new User(NULL);
@@ -190,9 +220,9 @@
 				$u->setContactInfo($con);
 				$this->users->insertLast($u);
 			}	
-		}
+		}*/
 		protected function setCategories($con){
-			$sql = "SELECT *, k.ID as KID, 0 as RID FROM `Keys` k WHERE k.`Key` = 'Category'";
+			$sql = "SELECT distinct k.*, k.ID as KID, 0 as RID FROM `Keys` k inner join Relationships r ON k.ID = r.KID WHERE k.`Key` = 'Category'";
 			$res = mysqli_query($con,$sql);
 			while($row = mysqli_fetch_array($res)){
 				$r = new Relation();
@@ -290,7 +320,11 @@
 			if(isset($row['Categories'])){
 				$row['Categories'] = explode(";",$row['Categories']);
 				$categories = array();
-				foreach($row['Categories'] as $cat){ $a = explode(":",$cat); $categories[] = array("ID"=>$a[0],"RID"=>$a[1],"KID"=>$a[2],"Key"=>$a[3],"Code"=>$a[4],"Definition"=>$a[5]); }
+				foreach($row['Categories'] as $cat){ 
+					$a = explode(":",$cat); 
+					for($j = 0; $j < count($a); $j += 1){ if(!isset($a[$j])){ $a[$j] = NULL;} } 
+					$categories[] = array("ID"=>$a[0],"Created"=>NULL,"Updated"=>NULL,"RID"=>$a[1],"KID"=>$a[2],"Key"=>$a[3],"Code"=>$a[4],"Definition"=>$a[5]); 
+				}
 				$relations = $this->getRelationships();
 				$relations['Category']->initMysql($categories);
 				$this->setRelationships($relations);
