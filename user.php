@@ -24,6 +24,18 @@
 			$this->setUname($row['Username']);
 			$this->setPass($row['Password']);
 			$this->setLLogin($row['LLogin']);
+			if(isset($row['Groups'])){
+				$row['Groups'] = explode(";",$row['Groups']);
+				$groups = array();
+				foreach($row['Groups'] as $cat){ 
+					$a = explode(":",$cat); 
+					for($j = 0; $j < count($a); $j += 1){ if(!isset($a[$j])){ $a[$j] = NULL;} } 
+					$groups[] = array("ID"=>$a[0],"Created"=>NULL,"Updated"=>NULL,"RID"=>$a[1],"KID"=>$a[2],"Key"=>$a[3],"Code"=>$a[4],"Definition"=>$a[5]); 
+				}
+				$relations = $this->getRelationships();
+				$relations['Groups']->initMysql($groups);
+				$this->setRelationships($relations);
+			}
 		}
 		public function toArray(){
 			$a = Contact::toArray();
