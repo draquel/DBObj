@@ -29,7 +29,7 @@
 			private function setPass($p){$this->pass = $p;}
 			private function setServer($s){$this->server = $s;}
 			private function setCon($db){
-				$this->con['$db'] = mysqli_connect($this->server,$this->user,$this->pass,$db);
+				$this->con['$db'] = new MySQLi($this->server,$this->user,$this->pass,$db);
 				return $this->con['$db'];
 			}
 			private function getCon($db){

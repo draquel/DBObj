@@ -51,12 +51,18 @@
 			return $a; 
 		}
 		public function login($u,$p,$con){
-			$this->setUname($u);
+			$ea = false;
+			if(validEmail($u)){
+				$ea = true;
+				$e = new Email(NULL);
+				$e->initMysql(array("ID"=>NULL,"Created"=>NULL,"Updated"=>NULL,"Name"=>"Login","PID"=>NULL,"Primary"=>1,"Address"=>$u));
+				$this->getEmails()->insertLast($e);
+			}else{ $this->setUname($u); }
 			$this->setPass(sha1($p));
 			$row = $this->authenticate($con);
 			if($row){
+				if($ea){ $this->setEmails(new DLList()); }
 				$this->initMysql($row);
-				$this->setGroups($con);
 				return TRUE;
 			}else{ return FALSE; }
 		}
@@ -66,13 +72,13 @@
 /*		protected function db_select($con){
 			$this->mysqlEsc();
 			$sql = "SELECT * FROM `Users_Data` WHERE `ID`=\"".$this->getID()."\"";
-			return mysql_query($sql,$con);
+			return mysqli_query($sql,$con);
 		}*/
 		protected function db_insert($con){
 			$this->mysqlEsc();
 			$sql = "INSERT INTO `Users` (`ID`,`First`,`Last`,`BDay`,`Created`,`Updated`,`Username`,`Password`,`LLogin`) VALUES (NULL,\"".$this->getFirst()."\",\"".$this->getLast()."\",\"".$this->getBDay(NULL)."\",\"".time()."\",\"".time()."\",\"".$this->getUname()."\",\"".$this->getPass()."\",\"".$this->getLLogin(NULL)."\")";
-			$res = mysql_query($sql,$con);
-			if($res){ $this->setID(mysql_insert_id($con)); }
+			$res = mysqli_query($sql,$con);
+			if($res){ $this->setID(mysqli_insert_id($con)); }
 			return $res;
 		}
 		protected function db_update($con){
@@ -80,16 +86,21 @@
 			$sql = "UPDATE `Users` SET `First`=\"".$this->getFirst()."\",`Last`=\"".$this->getLast()."\",`Updated`=\"".time()."\",`BDay`=\"".$this->getBDay(NULL)."\",`Username`=\"".$this->getUname()."\",`Password`=\"".$this->getPass()."\",`LLogin`=\"".$this->getLLogin()."\" WHERE `ID`=\"".$this->getID()."\"";
 			return mysql_query($sql,$con);
 		}
-		protected function mysqlEsc(){
-			Contact::mysqlEsc();
-			$this->setUname(mysql_escape_string($this->getUname()));
-			$this->setPass(mysql_escape_string($this->getPass()));
+		protected function mysqlEsc($con){
+			Contact::mysqlEsc($con);
+			$this->setUname(mysqli_escape_string($con,$this->getUname()));
+			$this->setPass(mysqli_escape_string($con,$this->getPass()));
 		}
 		protected function authenticate($con){
-			$this->mysqlEsc(false);
-			$sql = "SELECT * FROM Users WHERE Username=\"".$this->getUname()."\" AND Password=\"".$this->getPass()."\"";
-			$res = mysql_query($sql,$con);
-			if(mysql_num_rows($res) == 1){ return mysql_fetch_array($res); }else{ return FALSE; }
+			/*$this->mysqlEsc($con);*/
+			if($this->getUname() != NULL){
+				$sql = "SELECT u.*, group_concat(distinct concat(r.ID,':',r.RID,':',r.KID,':',r.Key,':',r.Code,':',r.Definition) separator ';') AS `Groups`, group_concat(distinct concat(`p`.`ID`,':',`p`.`Created`,':',`p`.`Updated`,':',`p`.`Name`,':',`p`.`PID`,':',`p`.`Primary`,':',`p`.`Region`,':',`p`.`Area`,':',`p`.`Number`,':',`p`.`Ext`) separator ';') AS `Phones`, group_concat(distinct concat(`a`.`ID`,':',`a`.`Created`,':',`a`.`Updated`,':',`a`.`Name`,':',`a`.`PID`,':',`a`.`Primary`,':',`a`.`Address`,':',`a`.`Address2`,':',`a`.`City`,':',`a`.`State`,':',`a`.`Zip`) separator ';') AS `Addresses`, group_concat(distinct concat(`e`.`ID`,':',`e`.`Created`,':',`e`.`Updated`,':',`e`.`Name`,':',`e`.`PID`,':',`e`.`Primary`,':',`e`.`Address`) separator ';') AS `Emails` FROM Users u LEFT JOIN Relationships r ON u.ID = r.RID AND r.Key = 'Group' LEFT JOIN `Addresses` `a` on `a`.`PID` = `u`.`ID` LEFT JOIN `Phones` `p` on `p`.`PID` = `u`.`ID` LEFT JOIN `Emails` `e` on `e`.`PID` = `u`.`ID` WHERE u.Username = '".$this->getUname()."' AND u.Password = '".$this->getPass()."' GROUP BY u.ID ORDER BY u.Created DESC";
+			}elseif($this->getEmails()->size() > 0){
+				$ea = $this->getEmails()->getFirstNode()->readNode()->toArray();
+				$sql = "SELECT u.*, group_concat(distinct concat(r.ID,':',r.RID,':',r.KID,':',r.Key,':',r.Code,':',r.Definition) separator ';') AS `Groups`, group_concat(distinct concat(`p`.`ID`,':',`p`.`Created`,':',`p`.`Updated`,':',`p`.`Name`,':',`p`.`PID`,':',`p`.`Primary`,':',`p`.`Region`,':',`p`.`Area`,':',`p`.`Number`,':',`p`.`Ext`) separator ';') AS `Phones`, group_concat(distinct concat(`a`.`ID`,':',`a`.`Created`,':',`a`.`Updated`,':',`a`.`Name`,':',`a`.`PID`,':',`a`.`Primary`,':',`a`.`Address`,':',`a`.`Address2`,':',`a`.`City`,':',`a`.`State`,':',`a`.`Zip`) separator ';') AS `Addresses`, group_concat(distinct concat(`e`.`ID`,':',`e`.`Created`,':',`e`.`Updated`,':',`e`.`Name`,':',`e`.`PID`,':',`e`.`Primary`,':',`e`.`Address`) separator ';') AS `Emails` FROM Users u LEFT JOIN Relationships r ON u.ID = r.RID AND r.Key = 'Group' LEFT JOIN `Addresses` `a` on `a`.`PID` = `u`.`ID` LEFT JOIN `Phones` `p` on `p`.`PID` = `u`.`ID` LEFT JOIN `Emails` `e` on `e`.`PID` = `u`.`ID` WHERE e.Address = '".$ea['Address']."' AND u.Password = '".$this->getPass()."' GROUP BY u.ID ORDER BY u.Created DESC";	
+			}else{ return false; }
+			$res = mysqli_query($con,$sql);
+			if(mysqli_num_rows($res) == 1){ return mysqli_fetch_array($res); }else{ return FALSE; }
 		}
 		protected function setUname($un){ $this->username = (string)$un; }
 		protected function setPass($p){ $this->password = (string)$p; }

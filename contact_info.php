@@ -2,13 +2,13 @@
 
 	class ContactInfo extends Root{
 		private $name;
-		private $cid;
+		private $pid;
 		private $primary;
 
 		public function __construct($id,$t){
 			DBObj::__construct($id,$t);
 			$this->name = NULL;
-			$this->cid = NULL;
+			$this->pid = NULL;
 			$this->primary = NULL;
 		}
 /*		public function init($id,$t,$cd,$ud,$n,$cid,$p){
@@ -31,17 +31,17 @@
 			return $p;
 		}
 
-		protected function mysqlEsc(){
-			Root::mysqlEsc();
-			$this->setName(mysql_escape_string($this->getName()));
-			$this->setPID(mysql_escape_string($this->getPID()));
-			$this->setPrimary(mysql_escape_string($this->getPrimary()));
+		protected function mysqlEsc($con){
+			Root::mysqlEsc($con);
+			$this->setName(mysql_escape_string($con,$this->getName()));
+			$this->setPID(mysql_escape_string($con,$this->getPID()));
+			$this->setPrimary(mysql_escape_string($con,$this->getPrimary()));
 		}
 		protected function getName(){ return (string)$this->name; }
-		public function getPID(){ return (int)$this->cid; }
+		public function getPID(){ return (int)$this->pid; }
 		protected function getPrimary(){ return (int)$this->primary; }
 		protected function setName($n){ $this->name = (string)$n; }
-		public function setPID($id){ $this->cid = (int)$id; }
+		public function setPID($id){ $this->pid = (int)$id; }
 		protected function setPrimary($p){ $this->primary = (int)$p; }
 	}
 
@@ -116,13 +116,13 @@
 			$sql = "DELETE FROM `Addresses` WHERE `ID`=".$this->getID();
 			return mysqli_query($con,$sql);
 		}
-		protected function mysqlEsc(){
-			ContactInfo::mysqlEsc();
-			$this->setAddress(mysql_escape_string($this->getAddress()));
-			$this->setAddress2(mysql_escape_string($this->getAddress2()));
-			$this->setCity(mysql_escape_string($this->getCity()));
-			$this->setState(mysql_escape_string($this->getState()));
-			$this->setZip(mysql_escape_string($this->getZip()));
+		protected function mysqlEsc($con){
+			ContactInfo::mysqlEsc($con);
+			$this->setAddress(mysql_escape_string($con,$this->getAddress()));
+			$this->setAddress2(mysql_escape_string($con,$this->getAddress2()));
+			$this->setCity(mysql_escape_string($con,$this->getCity()));
+			$this->setState(mysql_escape_string($con,$this->getState()));
+			$this->setZip(mysql_escape_string($con,$this->getZip()));
 		}
 		
 		private function setAddress($address){ $this->address = (string)$address; }
@@ -204,12 +204,12 @@
 			$this->mysqlEsc();
 			$sql = "DELETE FROM `Phones` WHERE `ID`=".$this->getID();
 		}
-		protected function mysqlEsc(){
-			ContactInfo::mysqlEsc();
-			$this->setRegion(mysql_escape_string($this->getRegion()));
-			$this->setArea(mysql_escape_string($this->getArea()));
-			$this->setNumber(mysql_escape_string($this->getNumber()));
-			$this->setExtention(mysql_escape_string($this->getExtention()));
+		protected function mysqlEsc($con){
+			ContactInfo::mysqlEsc($con);
+			$this->setRegion(mysql_escape_string($con,$this->getRegion()));
+			$this->setArea(mysql_escape_string($con,$this->getArea()));
+			$this->setNumber(mysql_escape_string($con,$this->getNumber()));
+			$this->setExtention(mysql_escape_string($con,$this->getExtention()));
 		}
 
 		private function setRegion($r){ $this->region = (string)$r; }
@@ -277,9 +277,9 @@
 			$sql = "DELETE FROM `Emails` WHERE `ID`=".$this->getID();
 			return mysqli_query($con,$sql);
 		}
-		protected function mysqlEsc(){
-			ContactInfo::mysqlEsc();
-			$this->setAddress(mysql_escape_string($this->getAddress()));
+		protected function mysqlEsc($con){
+			ContactInfo::mysqlEsc($con);
+			$this->setAddress(mysql_escape_string($con,$this->getAddress()));
 		}
 
 		private function getAddress(){ return (string)$this->address; }

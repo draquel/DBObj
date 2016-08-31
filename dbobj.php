@@ -68,10 +68,10 @@
 			$sql .= " WHERE ID = ".$this->getID();
 			return mysqli_query($con,$sql);		
 		}
-		protected function mysqlEsc(){
-			$this->setID(mysqli_escape_string($this->getID()));
-			$this->setCreated(mysqli_escape_string($this->getCreated(NULL)));
-			$this->setUpdated(mysqli_escape_string($this->getUpdated(NULL)));			
+		protected function mysqlEsc($con){
+			$this->setID(mysqli_escape_string($con,$this->getID()));
+			$this->setCreated(mysqli_escape_string($con,$this->getCreated(NULL)));
+			$this->setUpdated(mysqli_escape_string($con,$this->getUpdated(NULL)));			
 		}
 		public function toArray(){ return array("ID"=>$this->getID(),"Created"=>$this->getCreated(NULL),"Updated"=>$this->getUpdated(NULL));}
 		
@@ -188,12 +188,12 @@
 			$sql = "DELETE FROM `Relations` WHERE `ID`=".$this->getID();
 			return mysqli_query($sql,$con);
 		}
-		protected function mysqlEsc(){
-			DBObj::mysqlEsc();
-			$this->setKID(mysqli_escape_string($this->getKID()));
-			$this->setRID(mysqli_escape_string($this->getRID()));
-			$this->setCode(mysqli_escape_string($this->getCode()));
-			$this->setDefinition(mysqli_escape_string($this->getDefinition()));
+		protected function mysqlEsc($con){
+			DBObj::mysqlEsc($con);
+			$this->setKID(mysqli_escape_string($con,$this->getKID()));
+			$this->setRID(mysqli_escape_string($con,$this->getRID()));
+			$this->setCode(mysqli_escape_string($con,$this->getCode()));
+			$this->setDefinition(mysqli_escape_string($con,$this->getDefinition()));
 		}
 		public function setRID($id){ $this->rid = (int)$id;}
 		private function setKID($id){ $this->kid = (int)$id;}
@@ -276,9 +276,9 @@
 			}
 			$this->relations = $nRels;
 		}
-		private function mysqlEsc(){
-			$this->setRoot(mysqli_escape_string($this->getRoot()));
-			$this->setKey(mysqli_escape_string($this->getKey()));
+		private function mysqlEsc($con){
+			$this->setRoot(mysqli_escape_string($con,$this->getRoot()));
+			$this->setKey(mysqli_escape_string($con,$this->getKey()));
 		}
 		private function setRoot($r){ $this->root = (string)ucfirst($r); }
 		private function setKey($k){ $this->key = (string)ucfirst($k); }

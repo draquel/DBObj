@@ -47,11 +47,11 @@
 			$sql = "UPDATE `Persons` SET `First`=\"".$this->getFirst()."\",`Last`=\"".$this->getLast()."\",`BDay`=\"".$this->getBDay(NULL)."\",`Updated`=\"".time()."\" WHERE `ID`=\"".$this->getID()."\"";
 			return mysqli_query($con,$sql);
 		}
-		protected function mysqlEsc(){
-			Root::mysqlEsc();
-			$this->setFirst(mysqli_escape_string($this->getFirst()));
-			$this->setLast(mysqli_escape_string($this->getLast()));
-			$this->setBDay(mysqli_escape_string($this->getBDay(NULL)));
+		protected function mysqlEsc($con){
+			Root::mysqlEsc($con);
+			$this->setFirst(mysqli_escape_string($con,$this->getFirst()));
+			$this->setLast(mysqli_escape_string($con,$this->getLast()));
+			$this->setBDay(mysqli_escape_string($con,$this->getBDay(NULL)));
 		}
 		protected function getFirst(){ return (string)$this->first; }
 		protected function getLast(){ return (string)$this->last; }
@@ -208,8 +208,8 @@
 			return $a;
 		}
 
-		protected function mysqlEsc(){
-			Person::mysqlEsc(); 
+		protected function mysqlEsc($con){
+			Person::mysqlEsc($con); 
 		}
 		protected function setAddresses($con){ 
 			$this->addresses = new DLList();
