@@ -47,9 +47,10 @@
 		}
 		protected function db_insert($con){
 			$a = $this->toArray(); $fields = ""; $values = "";
-			for($i = 0; $i < count($a); $i++){
+			foreach($a as $key => $value){
+				if($key == "Rels" || $key == "ID"){ continue; }
 				if($fields != ""){ $fields .= ","; }
-				$fields .= ucfirst($key);
+				$fields .= $key;
 				if($values != ""){ $values .= ","; }
 				if(gettype($value) == "integer"){ $values .= $value; }else{ $values .= "'".$value."'"; }
 			}
@@ -61,9 +62,13 @@
 		protected function db_update($con){ 
 			$a = $this->toArray();
 			$sql = "UPDATE ".$this->getTable()." SET ";
+			$i = 0;
 			foreach($a as $key => $val){
+				$i++;
+				if($key == "Rels" || $key == "ID"){ continue; }
 				$sql .= ucfirst($key)." = ";
 				if(gettype($value) == "integer"){ $sql .= $val; }else{ $sql .= "'".$val."'"; }
+				if($i != count($a)){ $sql .= ","; }
 			}
 			$sql .= " WHERE ID = ".$this->getID();
 			return mysqli_query($con,$sql);		

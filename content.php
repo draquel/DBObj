@@ -92,11 +92,12 @@
 			return $a;
 		}
 		
-		public function getPage($num){
+		public function getPage($num,$pgSize = NULL){
 			$page = new DLList();
 			$post = $this->getPosts()->getFirstNode();
+			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
 			$i = 1;
-			if($num > 1){ $start = 1 + (($num-1)*$this->getPageSize()); $end = $num*$this->getPageSize(); }else{ $start = 1; $end = $this->getPageSize(); }
+			if($num > 1){ $start = 1 + (($num-1)*$pgSize); $end = $num*$pgSize; }else{ $start = 1; $end = $pgSize; }
 			while($post != NULL){
 				if($i >= $start && $i <= $end){
 					$p = $post->readNode();	
@@ -107,11 +108,12 @@
 			}
 			return $page;
 		}
-		public function getArchivePage($num,$def){
+		public function getArchivePage($num,$def,$pgSize = NULL){
 			$page = new DLList();
 			$archive = $this->getPosts()->getArchive();
+			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
 			$posts = $archive[$def];
-			if($num > 1){ $start = ($num-1)*$this->getPageSize(); $end = $num*$this->getPageSize()-1; }else{ $start = 0; $end = $this->getPageSize()-1; }
+			if($num > 1){ $start = ($num-1)*$pgSize; $end = $num*$pgSize-1; }else{ $start = 0; $end = $pgSize-1; }
 			for($i = 0; $i < count($posts); $i++){
 				$p = $posts[$i]->toArray();
 				if(date("Ym",$p['Created']) == $def){
@@ -122,11 +124,12 @@
 			}
 			return $page;
 		}
-		public function getCategoryPage($num,$def){
+		public function getCategoryPage($num,$def,$pgSize = NULL){
 			$page = new DLList();
 			$post = $this->getPosts()->getFirstNode();
+			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
 			$i = 1;
-			if($num > 1){ $start = 1 + (($num-1)*$this->getPageSize()); $end = $num*$this->getPageSize(); }else{ $start = 1; $end = $this->getPageSize(); }
+			if($num > 1){ $start = 1 + (($num-1)*$pgSize); $end = $num*$pgSize; }else{ $start = 1; $end = $pgSize; }
 			while($post != NULL){
 				$hasCat = false;
 				$p = $post->readNode()->toArray();
@@ -142,7 +145,7 @@
 			}
 			return $page;
 		}
-		public function getAuthorPage($num,$def,$users){
+		public function getAuthorPage($num,$def,$users,$pgSize = NULL){
 			$author = $users->getFirstNode();
 			while($author != NULL){
 				$a = $author->readNode()->toArray();
@@ -151,8 +154,9 @@
 			}
 			$page = new DLList();
 			$post = $this->getPosts()->getFirstNode();
+			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
 			$i = 1;
-			if($num > 1){ $start = 1 + (($num-1)*$this->getPageSize()); $end = $num*$this->getPageSize(); }else{ $start = 1; $end = $this->getPageSize(); }
+			if($num > 1){ $start = 1 + (($num-1)*$pgSize); $end = $num*$pgSize; }else{ $start = 1; $end = $pgSize; }
 			while($post != NULL){
 				$byAuth = false;
 				$p = $post->readNode()->toArray();
