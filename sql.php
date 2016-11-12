@@ -29,7 +29,7 @@
 			private function setPass($p){$this->pass = $p;}
 			private function setServer($s){$this->server = $s;}
 			private function setCon($db){
-				$this->con['$db'] = new MySQLi($this->server,$this->user,$this->pass,$db);
+				$this->con['$db'] = new mysqli($this->server,$this->user,$this->pass,$db,3306);
 				return $this->con['$db'];
 			}
 			private function getCon($db){
@@ -37,11 +37,11 @@
 				else{ return $this->con['$db']; }
 			}
 			private function isConnected($db){
-				if(!$this->con['$db']){return FALSE;}
+				if(!$this->con['$db']){ return FALSE; }
 				else{ return TRUE; }	
 			}
 			private function isInitialized(){
-				if($this->server == NULL || $this->user == NULL || $this->pass == NULL){return FALSE;}
+				if($this->server == NULL || $this->user == NULL || $this->pass == NULL){ return FALSE; }
 				else{ return TRUE; }
 			}
 		//Public Functions
@@ -55,10 +55,10 @@
 				$this->setUser($u);
 				$this->setPass($p);
 				$this->setServer($s);
-				if(!$this->isInitialized()){return FALSE;}else{return TRUE;}
+				if(!$this->isInitialized()){ return FALSE; }else{ return TRUE; }
 			}
 			public function connect($db){
-				if($this->isInitialized()){return $this->setCon($db);}else{return FALSE;}	
+				if($this->isInitialized()){return $this->setCon($db);}else{ return FALSE; }	
 			}
 			public function con($db){
 				if($this->isConnected($db)){ return $this->getCon($db); }

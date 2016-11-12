@@ -48,11 +48,11 @@
 		protected function db_insert($con){
 			$a = $this->toArray(); $fields = ""; $values = "";
 			foreach($a as $key => $value){
-				if($key == "Rels" || $key == "ID"){ continue; }
+				if($key == "Rels" || $key == "ID" || gettype($value) == "object"){ continue; }
 				if($fields != ""){ $fields .= ","; }
 				$fields .= $key;
 				if($values != ""){ $values .= ","; }
-				if(gettype($value) == "integer"){ $values .= $value; }else{ $values .= "'".$value."'"; }
+				if(gettype($value) == "array"){ $values .= "'".explode(",",$value)."'"; }elseif(gettype($value) == "integer"){ $values .= $value; }else{ $values .= "'".$value."'"; }
 			}
 			$sql = "INSERT INTO ".$this->table." (".$fields.") VALUES (".$values.")";
 			$res = mysqli_query($sql,$con);
@@ -65,9 +65,9 @@
 			$i = 0;
 			foreach($a as $key => $val){
 				$i++;
-				if($key == "Rels" || $key == "ID"){ continue; }
+				if($key == "Rels" || $key == "ID" || gettype($value) == "object"){ continue; }
 				$sql .= ucfirst($key)." = ";
-				if(gettype($value) == "integer"){ $sql .= $val; }else{ $sql .= "'".$val."'"; }
+				if(gettype($value) == "array"){ $values .= "'".explode(",",$value)."'"; }elseif(gettype($value) == "integer"){ $sql .= $val; }else{ $sql .= "'".$val."'"; }
 				if($i != count($a)){ $sql .= ","; }
 			}
 			$sql .= " WHERE ID = ".$this->getID();

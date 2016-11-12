@@ -22,7 +22,7 @@
 			Root::initMysql($row);
 			$this->setTitle($row['Title']);
 			$this->setDescription($row['Description']);
-			$this->setKeywords($row['Keywords']);
+			$this->setKeywords(explode(",",$row['Keywords']));
 			$this->setActive($row['Active']);
 		}
 		public function toArray(){
@@ -36,12 +36,12 @@
 		
 		public function getTitle(){ return (string)$this->title; }
 		public function getDesciption(){ return (string)$this->description; }
-		public function getKeywords(){ return (string)$this->keywords; }
+		public function getKeywords(){ return (array)$this->keywords; }
 		public function getActive(){ return (int)$this->active; }
 		
 		protected function setTitle($t){ (string)$this->title = $t; }
 		protected function setDescription($d){ (string)$this->description = $d; }
-		protected function setKeywords($k){ (string)$this->keywords = $k; }
+		protected function setKeywords($k){ (array)$this->keywords = $k; }
 		protected function setActive($a){ $this->active = (int)$a; }
 	}
 	
