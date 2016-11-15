@@ -19,9 +19,9 @@
 		}*/
 		public function initMysql($row){ 
 			Root::initMysql($row);
-			$this->setFirst($row['First']);
-			$this->setLast($row['Last']);
-			$this->setBDay($row['BDay']);
+			if(isset($row['First'])){ $this->setFirst($row['First']); }
+			if(isset($row['Last'])){ $this->setLast($row['Last']); }
+			if(isset($row['BDay'])){ $this->setBDay($row['BDay']); }
 		}
 		public function toArray(){
 			$p = Root::toArray();

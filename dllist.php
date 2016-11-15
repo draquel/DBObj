@@ -11,6 +11,7 @@
 		}
 		public function getFirstNode(){	return $this->_firstNode; }
 		public function getLastNode(){ return $this->_lastNode; }
+		public function pop(){ if($this->isEmpty()){ return false; }else{ $node = $this->_lastNode; $this->deleteLastNode(); return $node->readNode(); } }
 		public function isEmpty(){ return ($this->_firstNode == NULL); }
 		public function size(){	return $this->_count; }
 		public function insertFirst($data){

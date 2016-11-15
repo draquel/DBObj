@@ -19,9 +19,9 @@
 		}*/
 		public function initMysql($row){
 			Root::initMysql($row);
-			$this->setName($row['Name']);
-			$this->setPID($row['PID']);
-			$this->setPrimary($row['Primary']);
+			if(isset($row['Name'])){ $this->setName($row['Name']); }
+			if(isset($row['PID'])){ $this->setPID($row['PID']); }
+			if(isset($row['Primary'])){ $this->setPrimary($row['Primary']); }
 		}
 		public function toArray(){
 			$p = Root::toArray();

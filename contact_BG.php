@@ -25,10 +25,10 @@
 		}*/
 		public function initMysql($row){
 			Contact::initMysql($row);
-			$this->setCompany($row['Company']);
-			$this->setTitle($row['Title']);
-			$this->setStateOrg($row['State_Org']);
-			$this->setStateTitle($row['State_Title']);
+			if(isset($row['Company'])){ $this->setCompany($row['Company']); }
+			if(isset($row['Title'])){ $this->setTitle($row['Title']); }
+			if(isset($row['State_Org'])){ $this->setStateOrg($row['State_Org']); }
+			if(isset($row['State_Title'])){ $this->setStateTitle($row['State_Title']); }
 			if(isset($row['Donations']) && $row['Donations'] != NULL){
 				$dn = explode(";",$row['Donations']);
 				$this->donations = new DLList();

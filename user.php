@@ -21,9 +21,9 @@
 		}*/
 		public function initMysql($row){
 			Contact::initMysql($row);
-			$this->setUname($row['Username']);
-			$this->setPass($row['Password']);
-			$this->setLLogin($row['LLogin']);
+			if(isset($row['Username'])){ $this->setUname($row['Username']); }
+			if(isset($row['Password'])){ $this->setPass($row['Password']); }
+			if(isset($row['LLogin'])){ $this->setLLogin($row['LLogin']); }
 			if(isset($row['Groups'])){
 				$row['Groups'] = explode(";",$row['Groups']);
 				$groups = array();
@@ -72,12 +72,12 @@
 /*		protected function db_select($con){
 			$this->mysqlEsc();
 			$sql = "SELECT * FROM `Users_Data` WHERE `ID`=\"".$this->getID()."\"";
-			return mysqli_query($sql,$con);
+			return mysqli_query($con,$sql);
 		}*/
 		protected function db_insert($con){
 			$this->mysqlEsc();
 			$sql = "INSERT INTO `Users` (`ID`,`First`,`Last`,`BDay`,`Created`,`Updated`,`Username`,`Password`,`LLogin`) VALUES (NULL,\"".$this->getFirst()."\",\"".$this->getLast()."\",\"".$this->getBDay(NULL)."\",\"".time()."\",\"".time()."\",\"".$this->getUname()."\",\"".$this->getPass()."\",\"".$this->getLLogin(NULL)."\")";
-			$res = mysqli_query($sql,$con);
+			$res = mysqli_query($con,$sql);
 			if($res){ $this->setID(mysqli_insert_id($con)); }
 			return $res;
 		}

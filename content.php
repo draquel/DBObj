@@ -20,10 +20,10 @@
 		}*/
 		public function initMysql($row){ 
 			Root::initMysql($row);
-			$this->setTitle($row['Title']);
-			$this->setDescription($row['Description']);
-			$this->setKeywords(explode(",",$row['Keywords']));
-			$this->setActive($row['Active']);
+			if(isset($row['Title'])){ $this->setTitle($row['Title']); }
+			if(isset($row['Description'])){ $this->setDescription($row['Description']); }
+			if(isset($row['Keywords'])){ $this->setKeywords(explode(",",$row['Keywords'])); }
+			if(isset($row['Active'])){ $this->setActive($row['Active']); }
 		}
 		public function toArray(){
 			$a = Root::toArray();
@@ -55,7 +55,7 @@
 			Content::__construct($id,"Blogs");	
 			$this->posts = new DBOList();
 			/*$this->users = new DBOList();*/
-			$this->categories = new DLList();
+			$this->categories = new DBOList();
 			$this->pageSize = 0;
 		}
 /*		public function init($id,$t,$d,$h,$p,$c,$ps,$cd,$ud){
@@ -257,8 +257,8 @@
 		}*/
 		public function initMysql($row){ 
 			Content::initMysql($row);
-			$this->setAuthor($row['Author']);
-			$this->setHTML($row['HTML']);
+			if(isset($row['Author'])){ $this->setAuthor($row['Author']); }
+			if(isset($row['HTML'])){ $this->setHTML($row['HTML']); }
 		}
 		public function toArray(){
 			$a = Content::toArray();
@@ -311,7 +311,7 @@
 		
 		public function __construct($id){
 			HTMLDoc::__construct($id,"Posts");
-			Root::setRelationships(array('Category'=>new Relationship("Post","Category")));
+			Root::setRelationships(array('Parent'=>new Relationship("Blog","PostParent"),'Category'=>new Relationship("Post","Category")));
 			$this->coverImage = NULL;
 		}
 /*		public function init($id,$a,$t,$d,$html,$h,$ci,$cd,$ud){
@@ -320,7 +320,7 @@
 		}*/
 		public function initMysql($row){ 
 			HTMLDoc::initMysql($row);
-			$this->setCoverImage($row['CoverImage']);
+			if(isset($row['CoverImage'])){ $this->setCoverImage($row['CoverImage']); }
 			if(isset($row['Categories'])){
 				$row['Categories'] = explode(";",$row['Categories']);
 				$categories = array();
@@ -339,10 +339,12 @@
 			$a['CoverImage'] = $this->getCoverImage();
 			return $a;
 		}
-		protected function getCategories(){ $rels = Root::getRelationships(); return $rels['Category']->getRels(); }
+
+		public function getCategories(){ $rels = Root::getRelationships(); return $rels['Category']->getRels(); }
 		protected function getCoverImage(){ return (string)$this->coverImage; }
 		public function setCategories($con){ Root::setRelation("Post","Category",$con); }
 		protected function setCoverImage($i){ (string)$this->coverImage = $i; }
+		public function setParentRel($r){ $rels = Root::getRelationships(); $rels['Parent']->setRel($r); $this->setRelationships($rels); }
 	}
 	
 	class Page extends HTMLDoc{
