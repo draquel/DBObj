@@ -66,9 +66,9 @@
 			$i = 0;
 			foreach($a as $key => $val){
 				$i++;
-				if($key == "Rels" || $key == "ID" || $key == "Table" || gettype($value) == "object"){ continue; }
+				if($key == "Rels" || $key == "ID" || $key == "Table" || gettype($val) == "object"){ continue; }
 				$sql .= ucfirst($key)." = ";
-				if(gettype($value) == "array"){ $values .= "'".explode(",",$value)."'"; }elseif(gettype($value) == "integer"){ $sql .= $val; }else{ $sql .= "'".$val."'"; }
+				if(gettype($val) == "array"){ $sql .= "'".implode(",",$val)."'"; }elseif(gettype($val) == "integer"){ $sql .= $val; }else{ $sql .= "'".$val."'"; }
 				if($i != count($a)){ $sql .= ","; }
 			}
 			$sql .= " WHERE ID = ".$this->getID();
@@ -172,7 +172,7 @@
 			return $p;
 		}
 		protected function db_select($con){
-			/*$this->mysqlEsc();*/
+			/*$this->mysqlEsc($con);*/
 			$sql = "SELECT * FROM `Relationships` WHERE `ID`=\"".$this->getID()."\"";
 			return mysqli_query($con,$sql);
 		}
@@ -190,7 +190,7 @@
 			return $res;
 		}
 		protected function db_update($con){
-			$this->mysqlEsc();
+			//$this->mysqlEsc($con);
 			$time = time();
 			$sql = "UPDATE `Relations` SET `RID`=\"".$this->getRID()."\",`KID`=\"".$this->getKID()."\",`Updated`=\"".$time."\" WHERE `ID`=\"".$this->getID()."\"";
 			$res = mysqli_query($con,$sql);
@@ -198,7 +198,7 @@
 			return $res;
 		}
 		protected function db_delete($con){
-			$this->mysqlEsc();
+			//$this->mysqlEsc($con);
 			$sql = "DELETE FROM `Relations` WHERE `ID`=".$this->getID();
 			return mysqli_query($con,$sql);
 		}
