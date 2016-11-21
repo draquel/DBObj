@@ -57,6 +57,28 @@
 	 
 			return true;
 		}
+		public function insertAt($index, $data){
+			$current = $this->_firstNode;
+			$i = 0;
+			while($i < $index){
+				$current = $current->next;
+				$i++;
+				if($current == NULL){ return false; }
+			}
+			$newLink = new Node($data);
+			if($current == $this->_lastNode){
+				$newLink->next = NULL;
+				$this->_lastNode = $newLink;
+			} else {
+				$newLink->next = $current->next;
+				$current->next->previous = $newLink;
+			}
+			$newLink->previous = $current;
+			$current->next = $newLink;
+			$this->_count++;
+	 
+			return true;
+		}
 		public function swap($id1, $id2){//id = 0 to n 
 			$temp = $this->getNodeAt($id1)->readNode();
 			$this->getNodeAt($id1)->data = $this->getNodeAt($id2)->readNode();;
