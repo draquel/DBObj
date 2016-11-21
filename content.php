@@ -92,18 +92,21 @@
 			return $a;
 		}
 		
-		public function getPage($num,$pgSize = NULL){
+		public function getPage($num,$pgSize = NULL,$inactive = false){
 			$page = new DLList();
 			$post = $this->getPosts()->getFirstNode();
 			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
 			$i = 1;
 			if($num > 1){ $start = 1 + (($num-1)*$pgSize); $end = $num*$pgSize; }else{ $start = 1; $end = $pgSize; }
 			while($post != NULL){
-				if($i >= $start && $i <= $end){
-					$p = $post->readNode();	
-					$page->insertLast($p);	
-				}elseif($i > $this->getPosts()->size() || $i > $end){ break; }
-				$i++;
+				$p = $post->readNode();
+				$pa = $p->toArray();
+				if($pa['Active'] == 1 || $inactive){
+					if($i >= $start && $i <= $end){
+						$page->insertLast($p);
+					}elseif($i > $end){ break; }
+					$i++;
+				}
 				$post = $post->getNext();
 			}
 			return $page;
@@ -114,12 +117,14 @@
 			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
 			$posts = $archive[$def];
 			if($num > 1){ $start = ($num-1)*$pgSize; $end = $num*$pgSize-1; }else{ $start = 0; $end = $pgSize-1; }
-			for($i = 0; $i < count($posts); $i++){
-				$p = $posts[$i]->toArray();
-				if(date("Ym",$p['Created']) == $def){
+			$i = 0;
+			foreach($posts as $post){
+				$p = $post->toArray();
+				if(date("Ym",$p['Created']) == $def && $p['Active'] == 1){
 					if($i >= $start && $i <= $end){
-						$page->insertLast($posts[$i]);	
+						$page->insertLast($post);	
 					}elseif($i > $this->getPosts()->size() || $i > $end){ break; }
+					$i++;
 				}
 			}
 			return $page;
@@ -134,7 +139,7 @@
 				$hasCat = false;
 				$p = $post->readNode()->toArray();
 				if(count($p['Rels']['Category']) > 0){ foreach($p['Rels']['Category'] as $v){ if($v['Definition'] == $def){ $hasCat = true; break; } } }
-				if($hasCat){
+				if($hasCat && $p['Active'] == 1){
 					if($i >= $start && $i <= $end){
 						$p = $post->readNode();	
 						$page->insertLast($p);	
@@ -160,7 +165,7 @@
 			while($post != NULL){
 				$byAuth = false;
 				$p = $post->readNode()->toArray();
-				if($a['ID'] == $p['Author']){ $byAuth = true; }				
+				if($a['ID'] == $p['Author'] && $p['Active'] == 1){ $byAuth = true; }				
 				if($byAuth){
 					if($i >= $start && $i <= $end){
 						$p = $post->readNode();	
