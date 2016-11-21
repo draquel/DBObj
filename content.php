@@ -48,13 +48,11 @@
 	class Blog extends Content{
 		protected $pageSize;
 		protected $posts;
-		/*protected $users;*/
 		protected $categories;
 		
 		public function __construct($id){
 			Content::__construct($id,"Blogs");	
 			$this->posts = new DBOList();
-			/*$this->users = new DBOList();*/
 			$this->categories = new DBOList();
 			$this->pageSize = 0;
 		}
@@ -291,16 +289,6 @@
 				$this->posts->insertLast($p);
 			}	
 		}
-/*		protected function setUsers($con){
-			$sql = "SELECT u.*, group_concat(distinct concat(r.ID,':',r.RID,':',r.KID,':',r.Key,':',r.Code,':',r.Definition) separator ';') AS `Groups`, group_concat(distinct concat(`p`.`ID`,':',`p`.`Created`,':',`p`.`Updated`,':',`p`.`Name`,':',`p`.`PID`,':',`p`.`Primary`,':',`p`.`Region`,':',`p`.`Area`,':',`p`.`Number`,':',`p`.`Ext`) separator ';') AS `Phones`, group_concat(distinct concat(`a`.`ID`,':',`a`.`Created`,':',`a`.`Updated`,':',`a`.`Name`,':',`a`.`PID`,':',`a`.`Primary`,':',`a`.`Address`,':',`a`.`Address2`,':',`a`.`City`,':',`a`.`State`,':',`a`.`Zip`) separator ';') AS `Addresses`, group_concat(distinct concat(`e`.`ID`,':',`e`.`Created`,':',`e`.`Updated`,':',`e`.`Name`,':',`e`.`PID`,':',`e`.`Primary`,':',`e`.`Address`) separator ';') AS `Emails` FROM Users u LEFT JOIN Relationships r ON u.ID = r.RID AND r.Key = 'Group' LEFT JOIN `Addresses` `a` on `a`.`PID` = `u`.`ID` LEFT JOIN `Phones` `p` on `p`.`PID` = `u`.`ID` LEFT JOIN `Emails` `e` on `e`.`PID` = `u`.`ID` GROUP BY u.ID ORDER BY u.Created DESC";
-			$res = mysqli_query($con,$sql);
-			while($row = mysqli_fetch_array($res)){
-				$u = new User(NULL);
-				$u->initMysql($row);
-				$u->setContactInfo($con);
-				$this->users->insertLast($u);
-			}	
-		}*/
 		protected function setCategories($con){
 			$sql = "SELECT distinct k.*, k.ID as KID, 0 as RID FROM `Keys` k inner join Relationships r ON k.ID = r.KID WHERE k.`Key` = 'Category'";
 			$res = mysqli_query($con,$sql);
@@ -420,7 +408,6 @@
 		protected function getCoverImage(){ return (string)$this->coverImage; }
 		public function setCategories($con){ Root::setRelation("Post","Category",$con); }
 		protected function setCoverImage($i){ (string)$this->coverImage = $i; }
-		public function setParentRel($r){ $rels = Root::getRelationships(); $rels['Parent']->setRel($r); $this->setRelationships($rels); }
 	}
 	
 	class Page extends HTMLDoc{

@@ -126,6 +126,7 @@
 			if(count($a) > 0){ foreach($a as $k => $v){ $p['Rels'][$k] = $v->toArray(); } }
 			return $p;
 		}
+		public function setParentRel($r){ $rels = Root::getRelationships(); $rels['Parent']->setRel($r); $this->setRelationships($rels); }
 		
 		protected function getRelationships(){ return $this->relationships; }
 		protected function getRelation($key){ if(isset($this->relationships[$key])){ return $this->relationships[$key]; }else{ return false; } }
