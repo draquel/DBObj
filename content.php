@@ -111,6 +111,21 @@
 			}
 			return $page;
 		}
+		public function getPageLive($con,$num,$pgSize = NULL,$inactive = false){
+			$page = new DLList();
+			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
+			$start = ($num-1)*$pgSize;
+			$sql = "SELECT p.*, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM Posts p LEFT JOIN Relationships r ON p.ID = r.RID AND r.Key = 'PostParent' LEFT JOIN Relationships r2 ON p.ID = r2.RID AND r2.Key = 'Category' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY p.ID ORDER BY p.Created DESC LIMIT ".$start.",".$pgSize;
+			if(!$inactive){	$sql = str_replace("WHERE","WHERE p.Active=1 AND",$sql); }
+			//error_log("SQL Blog->getPage: ".$sql);
+			$res = mysqli_query($con,$sql);
+			while($row = mysqli_fetch_array($res)){
+				$p = new Post(NULL);
+				$p->initMysql($row);
+				$page->insertLast($p);
+			}
+			return $page;
+		}
 		public function getArchivePage($num,$def,$pgSize = NULL){
 			$page = new DLList();
 			$archive = $this->getPosts()->getArchive();
@@ -126,6 +141,21 @@
 					}elseif($i > $this->getPosts()->size() || $i > $end){ break; }
 					$i++;
 				}
+			}
+			return $page;
+		}
+		public function getArchivePageLive($con,$num,$def,$pgSize = NULL,$inactive = false){
+			$page = new DLList();
+			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
+			$start = ($num-1)*$pgSize;
+			$sql = "SELECT p.*, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM Posts p LEFT JOIN Relationships r ON p.ID = r.RID AND r.Key = 'PostParent' LEFT JOIN Relationships r2 ON p.ID = r2.RID AND r2.Key = 'Category' WHERE p.Created >= ".strtotime($def."01 00:00:00")." AND p.Created <= ".strtotime($def.date('t',strtotime($def."01"))." 00:00:00")." AND p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY p.ID ORDER BY p.Created DESC LIMIT ".$start.",".$pgSize;
+			if(!$inactive){	$sql = str_replace("WHERE","WHERE p.Active=1 AND",$sql); }
+			//error_log("SQL Blog->getArchivePage: ".$sql);
+			$res = mysqli_query($con,$sql);
+			while($row = mysqli_fetch_array($res)){
+				$p = new Post(NULL);
+				$p->initMysql($row);
+				$page->insertLast($p);
 			}
 			return $page;
 		}
@@ -147,6 +177,27 @@
 					$i++;
 				}
 				$post = $post->getNext();
+			}
+			return $page;
+		}
+		public function getCategoryPageLive($con,$num,$def,$pgSize = NULL,$inactive = false){
+			$page = new DLList();
+			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
+			$start = ($num-1)*$pgSize;
+			$cat = $this->getCategories()->getFirstNode();
+			while($cat != NULL){ 
+				$c = $cat->readNode()->toArray();
+				if($c['Definition'] == $def){ break; }
+				$cat = $cat->getNext();
+			}
+			$sql = "SELECT p.*, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM Posts p LEFT JOIN Relationships r ON p.ID = r.RID AND r.Key = 'PostParent' LEFT JOIN Relationships r2 ON p.ID = r2.RID AND r2.Key = 'Category' WHERE r2.KID=".$c['KID']." AND p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY p.ID ORDER BY p.Created DESC LIMIT ".$start.",".$pgSize;
+			if(!$inactive){	$sql = str_replace("WHERE","WHERE p.Active=1 AND",$sql); }
+			//error_log("SQL Blog->getCategoryPage: ".$sql);
+			$res = mysqli_query($con,$sql);
+			while($row = mysqli_fetch_array($res)){
+				$p = new Post(NULL);
+				$p->initMysql($row);
+				$page->insertLast($p);
 			}
 			return $page;
 		}
@@ -177,10 +228,30 @@
 			}
 			return $page;
 		}
-		public function load($con,$p = true,$c = true,$u = true){
+		public function getAuthorPageLive($con,$num,$def,$users,$pgSize = NULL,$inactive = false){
+			$author = $users->getFirstNode();
+			while($author != NULL){
+				$a = $author->readNode()->toArray();
+				if($a['First']." ".$a['Last'] == $def){ break; }
+				$author = $author->getNext();
+			}
+			$page = new DLList();
+			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
+			$start = ($num-1)*$pgSize;
+			$sql = "SELECT p.*, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM Posts p LEFT JOIN Relationships r ON p.ID = r.RID AND r.Key = 'PostParent' LEFT JOIN Relationships r2 ON p.ID = r2.RID AND r2.Key = 'Category' WHERE p.Author=".$a['ID']." AND p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY p.ID ORDER BY p.Created DESC LIMIT ".$start.",".$pgSize;
+			if(!$inactive){	$sql = str_replace("WHERE","WHERE p.Active=1 AND",$sql); }
+			//error_log("SQL Blog->getAuthorPage: ".$sql);
+			$res = mysqli_query($con,$sql);
+			while($row = mysqli_fetch_array($res)){
+				$p = new Post(NULL);
+				$p->initMysql($row);
+				$page->insertLast($p);
+			}
+			return $page;
+		}
+		public function load($con,$p = true,$c = true){
 			if($p){ $this->setPosts($con); }
 			if($c){ $this->setCategories($con); }
-			/*if($u){ $this->setUsers($con); }*/
 		}
 		public function rssGenFeed($domain,$path){
 			$out = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>

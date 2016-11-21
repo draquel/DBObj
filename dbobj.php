@@ -46,9 +46,9 @@
 			}else{ return false; }
 		}
 		protected function db_insert($con){
-			$a = $this->toArray(); $fields = ""; $values = "";
+			$a = $this->toArray(); $fields = "Created"; $values = time()."";
 			foreach($a as $key => $value){
-				if($key == "Rels" || $key == "ID" || gettype($value) == "object"){ continue; }
+				if($key == "Rels" || $key == "ID" || $key == "Table" || $key == "Created" || $key == "Updated" || gettype($value) == "object"){ continue; }
 				if($fields != ""){ $fields .= ","; }
 				$fields .= $key;
 				if($values != ""){ $values .= ","; }
@@ -62,16 +62,17 @@
 		}
 		protected function db_update($con){ 
 			$a = $this->toArray();
-			$sql = "UPDATE ".$this->getTable()." SET ";
+			$sql = "UPDATE ".$this->getTable()." SET Updated = ".time().",";
 			$i = 0;
 			foreach($a as $key => $val){
 				$i++;
-				if($key == "Rels" || $key == "ID" || $key == "Table" || gettype($val) == "object"){ continue; }
+				if($key == "Rels" || $key == "ID" || $key == "Table" || $key == "Created" || $key == "Updated" || gettype($val) == "object"){ continue; }
 				$sql .= ucfirst($key)." = ";
 				if(gettype($val) == "array"){ $sql .= "'".implode(",",$val)."'"; }elseif(gettype($val) == "integer"){ $sql .= $val; }else{ $sql .= "'".$val."'"; }
 				if($i != count($a)){ $sql .= ","; }
 			}
 			$sql .= " WHERE ID = ".$this->getID();
+			//error_log("SQL DBObj->Insert: ".$sql);
 			return mysqli_query($con,$sql);		
 		}
 		protected function mysqlEsc($con){
@@ -136,6 +137,7 @@
 			$this->relationships[$key]->setRels($con,$this->getID());
 		}
 	}
+
 	class Relation extends DBObj{
 		private $rid;
 		private $kid;
@@ -193,6 +195,7 @@
 			//$this->mysqlEsc($con);
 			$time = time();
 			$sql = "UPDATE `Relations` SET `RID`=\"".$this->getRID()."\",`KID`=\"".$this->getKID()."\",`Updated`=\"".$time."\" WHERE `ID`=\"".$this->getID()."\"";
+			//error_log("SQL Relation->Update: ".$sql);
 			$res = mysqli_query($con,$sql);
 			if($res){ $this->setUpdated($time); }
 			return $res;
@@ -245,7 +248,7 @@
 		}
 		public function setRel($r){ $this->relations->insertLast($r); }
 		public function setRels($con,$id){
-			/*$this->mysqlEsc();*/
+			/*$this->mysqlEsc($con);*/
 			$this->relations = new DBOList();
 			$sql = "SELECT * FROM Relationships WHERE `Key` = '".$this->getKey()."' AND `RID`=".$id;
 			$res = mysqli_query($con,$sql);

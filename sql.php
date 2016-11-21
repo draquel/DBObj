@@ -29,12 +29,11 @@
 			private function setPass($p){$this->pass = $p;}
 			private function setServer($s){$this->server = $s;}
 			private function setCon($db){
-				$this->con['$db'] = new mysqli($this->server,$this->user,$this->pass,$db,3306);
+				$this->con['$db'] = new mysqli($this->server,$this->user,$this->pass,$db);
 				return $this->con['$db'];
 			}
 			private function getCon($db){
-				if(!$this->isConnected($db)){ return FALSE; }
-				else{ return $this->con['$db']; }
+				return $this->con['$db'];
 			}
 			private function isConnected($db){
 				if(!$this->con['$db']){ return FALSE; }
