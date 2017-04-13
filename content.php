@@ -136,7 +136,7 @@
 			$page = new DLList();
 			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
 			$start = ($num-1)*$pgSize;
-			$sql = "SELECT p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM Posts p LEFT JOIN Users u ON p.Author = u.ID LEFT JOIN Relationships r ON p.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON p.ID = r2.RID AND r2.Key = 'Category' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY p.ID ORDER BY p.Created DESC LIMIT ".$start.",".$pgSize;
+			$sql = "SELECT d.*, p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM DBObj d INNER JOIN Posts p ON d.ID = p.DBO_ID LEFT JOIN Users u ON p.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON d.ID = r2.RID AND r2.Key = 'Category' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC LIMIT ".$start.",".$pgSize;
 			if(!$inactive){	$sql = str_replace("WHERE","WHERE p.Active=1 AND",$sql); }
 			//error_log("SQL Blog->getPage: ".$sql);
 			$res = mysqli_query($con,$sql);
@@ -150,7 +150,7 @@
 		}
 		public function getPostPageLive($con,$def,$inactive = false){
 			$page = new DLList();
-			$sql = "(SELECT p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM Posts p LEFT JOIN Users u ON p.Author = u.ID LEFT JOIN Relationships r ON p.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON p.ID = r2.RID AND r2.Key = 'Category' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' AND p.ID > ".$def." GROUP BY p.ID ORDER BY p.Created ASC LIMIT 1) UNION ALL (SELECT p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM Posts p LEFT JOIN Users u ON p.Author = u.ID LEFT JOIN Relationships r ON p.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON p.ID = r2.RID AND r2.Key = 'Category' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' AND p.ID=".$def." GROUP BY p.ID) UNION ALL (SELECT p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM Posts p LEFT JOIN Users u ON p.Author = u.ID LEFT JOIN Relationships r ON p.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON p.ID = r2.RID AND r2.Key = 'Category' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' AND p.ID < ".$def." GROUP BY p.ID ORDER BY p.Created DESC LIMIT 1)";
+			$sql = "(SELECT d.*, p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM DBObj d INNER JOIN Posts p ON d.ID = p.DBO_ID LEFT JOIN Users u ON p.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON d.ID = r2.RID AND r2.Key = 'Category' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' AND d.ID > ".$def." GROUP BY d.ID ORDER BY d.Created ASC LIMIT 1) UNION ALL (SELECT d.*, p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM DBObj d INNER JOIN Posts p ON d.ID = p.DBO_ID LEFT JOIN Users u ON p.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON d.ID = r2.RID AND r2.Key = 'Category' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' AND d.ID=".$def." GROUP BY d.ID) UNION ALL (SELECT d.*, p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM DBObj d INNER JOIN Posts p ON d.ID = p.DBO_ID LEFT JOIN Users u ON p.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON d.ID = r2.RID AND r2.Key = 'Category' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' AND d.ID < ".$def." GROUP BY d.ID ORDER BY d.Created DESC LIMIT 1)";
 			if(!$inactive){	$sql = str_replace("WHERE","WHERE p.Active=1 AND",$sql); }
 			//error_log("SQL Blog->getPostPage: ".$sql);
 			$res = mysqli_query($con,$sql);
@@ -184,7 +184,7 @@
 			$page = new DLList();
 			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
 			$start = ($num-1)*$pgSize;
-			$sql = "SELECT p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM Posts p LEFT JOIN Users u ON p.Author = u.ID LEFT JOIN Relationships r ON p.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON p.ID = r2.RID AND r2.Key = 'Category' WHERE p.Created >= ".strtotime($def."01 00:00:00")." AND p.Created <= ".strtotime($def.date('t',strtotime($def."01"))." 00:00:00")." AND p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY p.ID ORDER BY p.Created DESC LIMIT ".$start.",".$pgSize;
+			$sql = "SELECT d.*, p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM DBObj d INNER JOIN Posts p ON d.ID = p.DBO_ID LEFT JOIN Users u ON p.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON d.ID = r2.RID AND r2.Key = 'Category' WHERE d.Created >= ".strtotime($def."01 00:00:00")." AND d.Created <= ".strtotime($def.date('t',strtotime($def."01"))." 00:00:00")." AND p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC LIMIT ".$start.",".$pgSize;
 			if(!$inactive){	$sql = str_replace("WHERE","WHERE p.Active=1 AND",$sql); }
 			//error_log("SQL Blog->getArchivePage: ".$sql);
 			$res = mysqli_query($con,$sql);
@@ -227,7 +227,7 @@
 				if($c['Definition'] == $def){ break; }else{ $c = NULL; }
 				$cat = $cat->getNext();
 			}
-			$sql = "SELECT p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM Posts p LEFT JOIN Users u ON p.Author = u.ID LEFT JOIN Relationships r ON p.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON p.ID = r2.RID AND r2.Key = 'Category' WHERE r2.KID=".$c['KID']." AND p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY p.ID ORDER BY p.Created DESC LIMIT ".$start.",".$pgSize;
+			$sql = "SELECT d.*, p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM DBObj d INNER JOIN Posts p ON d.ID = p.DBO_ID LEFT JOIN Users u ON p.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON d.ID = r2.RID AND r2.Key = 'Category' WHERE r2.KID=".$c['KID']." AND p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC LIMIT ".$start.",".$pgSize;
 			if(!$inactive){	$sql = str_replace("WHERE","WHERE p.Active=1 AND",$sql); }
 			//error_log("SQL Blog->getCategoryPage: ".$sql);
 			$res = mysqli_query($con,$sql);
@@ -271,7 +271,7 @@
 			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
 			$start = ($num-1)*$pgSize;
 			$da = explode(" ",$def);
-			$sql = "SELECT p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM Posts p LEFT JOIN Users u ON p.Author = u.ID LEFT JOIN Relationships r ON p.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON p.ID = r2.RID AND r2.Key = 'Category' WHERE p.Author=(SELECT ID FROM Users WHERE First ='".$da[0]."' AND Last = '".$da[1]."') AND p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY p.ID ORDER BY p.Created DESC LIMIT ".$start.",".$pgSize;
+			$sql = "SELECT d.*, p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM DBObj d INNER JOIN Posts p ON d.ID = p.DBO_ID LEFT JOIN Users u ON p.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON d.ID = r2.RID AND r2.Key = 'Category' WHERE p.Author=(SELECT DBO_ID FROM Users WHERE First ='".$da[0]."' AND Last = '".$da[1]."') AND p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC LIMIT ".$start.",".$pgSize;
 			if(!$inactive){	$sql = str_replace("WHERE","WHERE p.Active=1 AND",$sql); }
 			//error_log("SQL Blog->getAuthorPage: ".$sql);
 			$res = mysqli_query($con,$sql);
@@ -312,7 +312,7 @@
 			return $out;
 		}
 		public function rssGenFeedLive($con,$domain,$path,$inactive = false){
-			$sql = "SELECT p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM Posts p LEFT JOIN Users u ON p.Author = u.ID LEFT JOIN Relationships r ON p.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON p.ID = r2.RID AND r2.Key = 'Category' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY p.ID ORDER BY p.Created DESC";
+			$sql = "SELECT p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM DBObj d INNER JOIN Posts p ON d.ID = p.DBO_ID LEFT JOIN Users u ON p.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON d.ID = r2.RID AND r2.Key = 'Category' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC";
 			if(!$inactive){	$sql = str_replace("WHERE","WHERE p.Active=1 AND",$sql); }
 			$res = mysqli_query($con,$sql);
 			
@@ -348,7 +348,7 @@
 		public function getPageSize(){ return (int)$this->pageSize; }
 		
 		protected function setPosts($con){
-			$sql = "SELECT p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM Posts p LEFT JOIN Users u ON p.Author = u.ID LEFT JOIN Relationships r ON p.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON p.ID = r2.RID AND r2.Key = 'Category' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY p.ID ORDER BY p.Created DESC";
+			$sql = "SELECT d.*, p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM DBObj d INNER JOIN Posts p ON d.ID = p.DBO_ID LEFT JOIN Users u ON p.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON d.ID = r2.RID AND r2.Key = 'Category' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC";
 			$res = mysqli_query($con,$sql);
 			$this->posts = new DBOList();
 			while($row = mysqli_fetch_array($res)){
@@ -485,7 +485,7 @@
 		}*/
 		public function dbRead($con){
 			if(HTMLDoc::dbRead($con)){
-				$sql = "SELECT concat(First,' ',Last) as `Signature` FROM Users WHERE ID = ".$this->getAuthor();
+				$sql = "SELECT concat(First,' ',Last) as `Signature` FROM Users WHERE DBO_ID = ".$this->getAuthor();
 				$res = mysqli_query($con,$sql);
 				$a = mysqli_fetch_array($res);
 				$this->setSignature($a['Signature']);
