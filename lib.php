@@ -4,6 +4,13 @@
 	function isMobile() { return preg_match("/(android|avantgo|blackberry|bolt|boost|cricket|docomo|fone|hiptop|mini|mobi|palm|phone|pie|tablet|up\.browser|up\.link|webos|wos)/i", $_SERVER["HTTP_USER_AGENT"]); }
 	function parseImgs($src){ $imgs = array(); $doc = new DOMDocument(); $doc->loadHTMLFile($src); $doc->preserveWhiteSpace = false; $images = $doc->getElementsByTagName('img'); if($images->length >= 1){ foreach($images as $i){ $imgs[] = $i->getAttribute('src'); } } return $imgs; }
 	function url($page = false){$ha = apache_request_headers();	if(isset($ha['X-Forwarded-Proto'])){ $protocol = $ha['X-Forwarded-Proto']; }else{$protocol = stripos($_SERVER['SERVER_PROTOCOL'],'https') === true ? 'https' : 'http'; } $protocol .= "://"; $out = $protocol . $_SERVER['HTTP_HOST']; if($page){ $out .= $_SERVER['REQUEST_URI']; } return $out; }
+	
+	function free_result($con) {
+        while (mysqli_more_results($con) && mysqli_next_result($con)) {
+            $dummyResult = mysqli_use_result($con);
+            if ($dummyResult instanceof mysqli_result) { mysqli_free_result($con); }
+        }
+    }
 	function str_sanitize($s){
 		//Replace Symbols With HTML Codes
 		str_replace(" ","&#32;",$s);
