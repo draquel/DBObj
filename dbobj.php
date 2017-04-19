@@ -112,17 +112,17 @@
 			$html = str_replace("{ID}",$this->getID(),$html);
 			$html = str_replace("{Created}",$this->getCreated($ds),$html);
 			$html = str_replace("{Updated}",$this->getUpdated($ds),$html);
-			if(str_pos($html,"{Created-Day}") !== false){
+			if(strpos($html,"{Created-Day}") !== false){
 				$days = array('j','d','D','l','N','S','w','z');
-				for($i = 0; $i < count($days); $i++){ if(str_pos($ds,$days[$i]) !== false ){ $html = str_replace("{Created-Day}",$this->getCreated($days[$i]),$html); break; } }
+				for($i = 0; $i < count($days); $i++){ if(strpos($ds,$days[$i]) !== false ){ $html = str_replace("{Created-Day}",$this->getCreated($days[$i]),$html); break; } }
 			}
-			if(str_pos($html,"{Created-Month}") !== false){
+			if(strpos($html,"{Created-Month}") !== false){
 				$months = array('F','m','M','n','t');
-				for($i = 0; $i < count($months); $i++){ if(str_pos($ds,$months[$i]) !== false ){ $html = str_replace("{Created-Month}",$this->getCreated($months[$i]),$html); break; } }
+				for($i = 0; $i < count($months); $i++){ if(strpos($ds,$months[$i]) !== false ){ $html = str_replace("{Created-Month}",$this->getCreated($months[$i]),$html); break; } }
 			}
-			if(str_pos($html,"{Created-Year}") !== false){
+			if(strpos($html,"{Created-Year}") !== false){
 				$years = array('Y','L','o','y');
-				for($i = 0; $i < count($years); $i++){ if(str_pos($ds,$years[$i]) !== false ){ $html = str_replace("{Created-Year}",$this->getCreated($years[$i]),$html); break; } }
+				for($i = 0; $i < count($years); $i++){ if(strpos($ds,$years[$i]) !== false ){ $html = str_replace("{Created-Year}",$this->getCreated($years[$i]),$html); break; } }
 			}
 			return $html;
 		}

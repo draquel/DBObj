@@ -3,6 +3,7 @@
 		protected $title;
 		protected $desciption;
 		protected $keywords;
+		protected $author;
 		protected $active;
 		
 		public function __construct($id,$t){
@@ -10,14 +11,9 @@
 			$this->title = NULL;
 			$this->description = NULL;
 			$this->keywords = array();
+			$this->author = NULL;
 			$this->active = NULL;
 		}
-/*		public function init($id,$t,$d,$h,$cd,$ud){
-			Root::init($id,"Content",$cd,$ud);
-			$this->setTitle($t);
-			$this->setDescription($d);
-			$this->setHidden($h);
-		}*/
 		public function dbRead($con){
 			if(Root::dbRead($con)){
 				return true;
@@ -38,6 +34,7 @@
 			if(isset($row['Title'])){ $this->setTitle($row['Title']); }
 			if(isset($row['Description'])){ $this->setDescription($row['Description']); }
 			if(isset($row['Keywords'])){ $this->setKeywords(explode(",",$row['Keywords'])); }
+			if(isset($row['Author'])){ $this->setAuthor($row['Author']); }
 			if(isset($row['Active'])){ $this->setActive($row['Active']); }
 		}
 		public function toArray(){
@@ -45,6 +42,7 @@
 			$a['Title'] = $this->getTitle();
 			$a['Description'] = $this->getDesciption();
 			$a['Keywords'] = $this->getKeywords();
+			$a['Author'] = $this->getAuthor();
 			$a['Active'] = $this->getActive();
 			return $a;
 		}
@@ -53,6 +51,7 @@
 			$html = str_replace("{Title}",$this->getTitle(),$html);
 			$html = str_replace("{Description}",$this->getDesciption(),$html);
 			$html = str_replace("{Keywords}",implode(", ",$this->getKeywords()),$html);
+			$html = str_replace("{Author}",$this->getAuthor(),$html);
 			$html = str_replace("{Active}",$this->getActive(),$html);
 			return $html;
 		}
@@ -61,333 +60,277 @@
 		public function getDesciption(){ return (string)$this->description; }
 		public function getKeywords(){ return (array)$this->keywords; }
 		public function getActive(){ return (int)$this->active; }
+		protected function getAuthor(){ return (string)$this->author; }
 		
+		protected function setAuthor($a){ (string)$this->author = $a; }
 		protected function setTitle($t){ (string)$this->title = $t; }
 		protected function setDescription($d){ (string)$this->description = $d; }
 		protected function setKeywords($k){ (array)$this->keywords = $k; }
 		protected function setActive($a){ $this->active = (int)$a; }
 	}
 	
-	class Blog extends Content{
+	abstract class Collection extends Content{
 		protected $pageSize;
-		protected $posts;
-		protected $categories;
+		protected $content;
+		protected $_ctable;
+		protected $_contRels;
 		
-		public function __construct($id){
-			Content::__construct($id,"Blogs");	
-			$this->posts = new DBOList();
-			$this->categories = new DBOList();
+		public function __construct($id,$table,$ctype,$crels){
+			Content::__construct($id,$table);
 			$this->pageSize = 0;
+			$this->content = new DBOList();
+			$this->_ctable = $ctype;
+			$this->_contRels = $crels;
 		}
-/*		public function init($id,$t,$d,$h,$p,$c,$ps,$cd,$ud){
-			Content::init($id,$t,$d,$h,$cd,$ud);
-			$this->setPosts($p);
-			$this->setCategories($c);
-			$this->setPageSize($ps);
-		}*/
+		abstract protected function processMYSQL($data);
+		
 		public function initMysql($row){ 
 			Content::initMysql($row);
 			$this->setPageSize($row['PageSize']);
 		}
 		public function toArray(){
 			$a = Content::toArray();
-			if($this->getPosts()->size() != 0){
-				$a['Posts'] =  array();
-				$g = $this->getPosts()->getFirstNode();
-				for($i = 0; $i < $this->getPosts()->size(); $i += 1){
-					$ar = $g->readNode()->toArray();
-					$a['Posts'][$i] = $ar;
-					$g = $g->getNext();
-				}
-			}
-			if($this->getCategories()->size() != 0){
-				$a['Categories'] =  array();
-				$g = $this->getCategories()->getFirstNode();
-				for($i = 0; $i < $this->getCategories()->size(); $i += 1){
-					$ar = $g->readNode()->toArray();
-					$a['Categories'][$i] = $ar;
-					$g = $g->getNext();
-				}
-			}
 			$a['PageSize'] = $this->getPageSize();
+			$a['_contRels'] = $this->getContRels();
+			if($this->getContent()->size() != 0){
+				$a['Content'] =  array();
+				$g = $this->getContent()->getFirstNode();
+				for($i = 0; $i < $this->getContent()->size(); $i += 1){
+					$ar = $g->readNode()->toArray();
+					$a['Content'][$i] = $ar;
+					$g = $g->getNext();
+				}
+			}
 			return $a;
 		}
 		
-		public function getPage($num,$pgSize = NULL,$inactive = false){
+		public function getPage($con,$num,$pgSize = NULL,$inactive = false){
 			$page = new DLList();
-			$post = $this->getPosts()->getFirstNode();
-			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
-			$i = 1;
-			if($num > 1){ $start = 1 + (($num-1)*$pgSize); $end = $num*$pgSize; }else{ $start = 1; $end = $pgSize; }
-			while($post != NULL){
-				$p = $post->readNode();
-				$pa = $p->toArray();
-				if($pa['Active'] == 1 || $inactive){
-					if($i >= $start && $i <= $end){
-						$page->insertLast($p);
-					}elseif($i > $end){ break; }
-					$i++;
-				}
-				$post = $post->getNext();
-			}
-			return $page;
-		}
-		public function getPageLive($con,$num,$pgSize = NULL,$inactive = false){
-			$page = new DLList();
+			$crels = array();
+			foreach($this->_contRels as $key => $val){ $crels[] = $key; }
 			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
 			$start = ($num-1)*$pgSize;
-			$sql = "SELECT d.*, p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM DBObj d INNER JOIN Posts p ON d.ID = p.DBO_ID LEFT JOIN Users u ON p.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON d.ID = r2.RID AND r2.Key = 'Category' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC LIMIT ".$start.",".$pgSize;
-			if(!$inactive){	$sql = str_replace("WHERE","WHERE p.Active=1 AND",$sql); }
-			//error_log("SQL Blog->getPage: ".$sql);
-			$res = mysqli_query($con,$sql);
-			//if(!$res){error_log("SQL Blog->getPage ERROR: ".mysqli_error($con));}
-			while($row = mysqli_fetch_array($res)){
-				$p = new Post(NULL);
-				$p->initMysql($row);
-				$page->insertLast($p);
-			}
-			return $page;
+			$sql = "SELECT d.*, c.*, concat(u.First,' ',u.Last) as `_Signature`";
+			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= ", group_concat(distinct concat(r".$c.".ID,':',r".$c.".RID,':',r".$c.".KID,':',r".$c.".Key,':',r".$c.".Code,':',r".$c.".Definition) separator ';') AS `".$crels[$i]."`"; }
+			$sql .= " FROM DBObj d INNER JOIN ".$this->_ctable." c ON d.ID = c.DBO_ID LEFT JOIN Users u ON c.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent'";
+			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= " LEFT JOIN Relationships r".$c." ON d.ID = r".$c.".RID AND r".$c.".Key = '".$crels[$i]."'";	}
+			$sql .= "WHERE c.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC LIMIT ".$start.",".$pgSize;
+			if(!$inactive){	$sql = str_replace("WHERE","WHERE c.Active=1 AND",$sql); }
+			$data = mysqli_query($con,$sql);
+			if($data){ return $this->processMYSQL($data);}
+			else{ error_log("SQL Collection->getPage: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false; }
 		}
-		public function getPostPageLive($con,$def,$inactive = false){
+		public function getContentPage($con,$def,$inactive = false){
 			$page = new DLList();
-			$sql = "(SELECT d.*, p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM DBObj d INNER JOIN Posts p ON d.ID = p.DBO_ID LEFT JOIN Users u ON p.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON d.ID = r2.RID AND r2.Key = 'Category' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' AND d.ID > ".$def." GROUP BY d.ID ORDER BY d.Created ASC LIMIT 1) UNION ALL (SELECT d.*, p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM DBObj d INNER JOIN Posts p ON d.ID = p.DBO_ID LEFT JOIN Users u ON p.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON d.ID = r2.RID AND r2.Key = 'Category' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' AND d.ID=".$def." GROUP BY d.ID) UNION ALL (SELECT d.*, p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM DBObj d INNER JOIN Posts p ON d.ID = p.DBO_ID LEFT JOIN Users u ON p.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON d.ID = r2.RID AND r2.Key = 'Category' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' AND d.ID < ".$def." GROUP BY d.ID ORDER BY d.Created DESC LIMIT 1)";
-			if(!$inactive){	$sql = str_replace("WHERE","WHERE p.Active=1 AND",$sql); }
-			//error_log("SQL Blog->getPostPage: ".$sql);
-			$res = mysqli_query($con,$sql);
-			//if(!$res){error_log("SQL Blog->getPostPage ERROR: ".mysqli_error($con));}
-			while($row = mysqli_fetch_array($res)){
-				$p = new Post(NULL);
-				$p->initMysql($row);
-				$page->insertLast($p);
-			}
-			return $page;
+			$crels = array();
+			foreach($this->_contRels as $key => $val){ $crels[] = $key; }
+			$sql = "(SELECT d.*, c.*, concat(u.First,' ',u.Last) as `_Signature`";
+			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= ", group_concat(distinct concat(r".$c.".ID,':',r".$c.".RID,':',r".$c.".KID,':',r".$c.".Key,':',r".$c.".Code,':',r".$c.".Definition) separator ';') AS `".$crels[$i]."`"; }
+			$sql .= "FROM DBObj d INNER JOIN ".$this->_ctable." c ON d.ID = c.DBO_ID LEFT JOIN Users u ON c.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent'";
+			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= " LEFT JOIN Relationships r".$c." ON d.ID = r".$c.".RID AND r".$c.".Key = '".$crels[$i]."'"; }
+			$sql .= " WHERE c.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' AND d.ID > ".$def." GROUP BY d.ID ORDER BY d.Created ASC LIMIT 1) UNION ALL (SELECT d.*, c.*, concat(u.First,' ',u.Last) as `_Signature`";
+			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= ", group_concat(distinct concat(r".$c.".ID,':',r".$c.".RID,':',r".$c.".KID,':',r".$c.".Key,':',r".$c.".Code,':',r".$c.".Definition) separator ';') AS `".$crels[$i]."`"; }
+			$sql .= "FROM DBObj d INNER JOIN ".$this->_ctable." c ON d.ID = c.DBO_ID LEFT JOIN Users u ON c.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent'";
+			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= " LEFT JOIN Relationships r".$c." ON d.ID = r".$c.".RID AND r".$c.".Key = '".$crels[$i]."'"; } 
+			$sql .= " WHERE c.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' AND d.ID=".$def." GROUP BY d.ID) UNION ALL (SELECT d.*, c.*, concat(u.First,' ',u.Last) as `_Signature`";
+			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= ", group_concat(distinct concat(r".$c.".ID,':',r".$c.".RID,':',r".$c.".KID,':',r".$c.".Key,':',r".$c.".Code,':',r".$c.".Definition) separator ';') AS `".$crels[$i]."`"; }
+			$sql .= "FROM DBObj d INNER JOIN ".$this->_ctable." c ON d.ID = c.DBO_ID LEFT JOIN Users u ON c.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent'";
+			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= " LEFT JOIN Relationships r".$c." ON d.ID = r".$c.".RID AND r".$c.".Key = '".$crels[$i]."'"; }
+			$sql .= " WHERE c.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' AND d.ID < ".$def." GROUP BY d.ID ORDER BY d.Created DESC LIMIT 1)";
+			if(!$inactive){	$sql = str_replace("WHERE","WHERE c.Active=1 AND",$sql); }
+			$data = mysqli_query($con,$sql);
+			if($data){ return $this->processMYSQL($data); }
+			else{ error_log("SQL Collection->getContentPage: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false; }
+
 		}
-		public function getArchivePage($num,$def,$pgSize = NULL){
+		public function getArchivePage($con,$num,$def,$pgSize = NULL,$inactive = false){
 			$page = new DLList();
-			$archive = $this->getPosts()->getArchive();
-			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
-			$posts = $archive[$def];
-			if($num > 1){ $start = ($num-1)*$pgSize; $end = $num*$pgSize-1; }else{ $start = 0; $end = $pgSize-1; }
-			$i = 0;
-			foreach($posts as $post){
-				$p = $post->toArray();
-				if(date("Ym",$p['Created']) == $def && $p['Active'] == 1){
-					if($i >= $start && $i <= $end){
-						$page->insertLast($post);	
-					}elseif($i > $this->getPosts()->size() || $i > $end){ break; }
-					$i++;
-				}
-			}
-			return $page;
-		}
-		public function getArchivePageLive($con,$num,$def,$pgSize = NULL,$inactive = false){
-			$page = new DLList();
+			$crels = array();
+			foreach($this->_contRels as $key => $val){ $crels[] = $key; }
 			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
 			$start = ($num-1)*$pgSize;
-			$sql = "SELECT d.*, p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM DBObj d INNER JOIN Posts p ON d.ID = p.DBO_ID LEFT JOIN Users u ON p.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON d.ID = r2.RID AND r2.Key = 'Category' WHERE d.Created >= ".strtotime($def."01 00:00:00")." AND d.Created <= ".strtotime($def.date('t',strtotime($def."01"))." 00:00:00")." AND p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC LIMIT ".$start.",".$pgSize;
-			if(!$inactive){	$sql = str_replace("WHERE","WHERE p.Active=1 AND",$sql); }
-			//error_log("SQL Blog->getArchivePage: ".$sql);
-			$res = mysqli_query($con,$sql);
-			//if(!$res){error_log("SQL Blog->getArchivePage ERROR: ".mysqli_error($con));}
-			while($row = mysqli_fetch_array($res)){
-				$p = new Post(NULL);
-				$p->initMysql($row);
-				$page->insertLast($p);
-			}
-			return $page;
+			$sql = "SELECT d.*, c.*, concat(u.First,' ',u.Last) as `_Signature`";
+			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= ", group_concat(distinct concat(r".$c.".ID,':',r".$c.".RID,':',r".$c.".KID,':',r".$c.".Key,':',r".$c.".Code,':',r".$c.".Definition) separator ';') AS `".$crels[$i]."`"; }
+			$sql .= " FROM DBObj d INNER JOIN ".$this->_ctable." c ON d.ID = c.DBO_ID LEFT JOIN Users u ON c.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent'";
+			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= " LEFT JOIN Relationships r".$c." ON d.ID = r".$c.".RID AND r".$c.".Key = '".$crels[$i]."'"; }
+			$sql .= " WHERE d.Created >= ".strtotime($def."01 00:00:00")." AND d.Created <= ".strtotime($def.date('t',strtotime($def."01"))." 00:00:00")." AND c.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC LIMIT ".$start.",".$pgSize;
+			if(!$inactive){	$sql = str_replace("WHERE","WHERE c.Active=1 AND",$sql); }
+			$data = mysqli_query($con,$sql);
+			if($data){ return $this->processMYSQL($data);}
+			else{ error_log("SQL Collection->getArchivePage: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false; }
 		}
-		public function getCategoryPage($num,$def,$pgSize = NULL){
+		public function getRelPage($con,$num,$crel,$def,$pgSize = NULL,$inactive = false){
 			$page = new DLList();
-			$post = $this->getPosts()->getFirstNode();
-			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
-			$i = 1;
-			if($num > 1){ $start = 1 + (($num-1)*$pgSize); $end = $num*$pgSize; }else{ $start = 1; $end = $pgSize; }
-			while($post != NULL){
-				$hasCat = false;
-				$p = $post->readNode()->toArray();
-				if(count($p['Rels']['Category']) > 0){ foreach($p['Rels']['Category'] as $v){ if($v['Definition'] == $def){ $hasCat = true; break; } } }
-				if($hasCat && $p['Active'] == 1){
-					if($i >= $start && $i <= $end){
-						$p = $post->readNode();	
-						$page->insertLast($p);	
-					}elseif($i > $this->getPosts()->size() || $i > $end){ break; }
-					$i++;
-				}
-				$post = $post->getNext();
-			}
-			return $page;
-		}
-		public function getCategoryPageLive($con,$num,$def,$pgSize = NULL,$inactive = false){
-			$page = new DLList();
+			$crels = array();
+			foreach($this->_contRels as $key => $val){ $crels[] = $key; }
 			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
 			$start = ($num-1)*$pgSize;
-			$cat = $this->getCategories()->getFirstNode();
-			while($cat != NULL){ 
-				$c = $cat->readNode()->toArray();
-				if($c['Definition'] == $def){ break; }else{ $c = NULL; }
-				$cat = $cat->getNext();
-			}
-			$sql = "SELECT d.*, p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM DBObj d INNER JOIN Posts p ON d.ID = p.DBO_ID LEFT JOIN Users u ON p.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON d.ID = r2.RID AND r2.Key = 'Category' WHERE r2.KID=".$c['KID']." AND p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC LIMIT ".$start.",".$pgSize;
-			if(!$inactive){	$sql = str_replace("WHERE","WHERE p.Active=1 AND",$sql); }
-			//error_log("SQL Blog->getCategoryPage: ".$sql);
-			$res = mysqli_query($con,$sql);
-			//if(!$res){error_log("SQL Blog->getCategoryPage ERROR: ".mysqli_error($con));}
-			while($row = mysqli_fetch_array($res)){
-				$p = new Post(NULL);
-				$p->initMysql($row);
-				$page->insertLast($p);
-			}
-			return $page;
+			$sql = "SELECT d.*, c.*, concat(u.First,' ',u.Last) as `_Signature`";
+			for($i = 0; $i < count($crels); $i++){ $c = $i+1; if($crels[$i] == $crel){ $n = $c; } $sql .= ", group_concat(distinct concat(r".$c.".ID,':',r".$c.".RID,':',r".$c.".KID,':',r".$c.".Key,':',r".$c.".Code,':',r".$c.".Definition) separator ';') AS `".$crels[$i]."`"; }
+			$sql .= " FROM DBObj d INNER JOIN ".$this->_ctable." c ON d.ID = c.DBO_ID LEFT JOIN Users u ON c.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent'";
+			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= " LEFT JOIN Relationships r".$c." ON d.ID = r".$c.".RID AND r".$c.".Key = '".$crels[$i]."'"; }
+			$sql .= " WHERE r".$n.".Definition='".$def."' AND c.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC LIMIT ".$start.",".$pgSize;
+			if(!$inactive){	$sql = str_replace("WHERE","WHERE c.Active=1 AND",$sql); }
+			$data = mysqli_query($con,$sql);
+			if($data){ return $this->processMYSQL($data);}
+			else{ error_log("SQL Collection->getRelPage: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false; }
 		}
-		public function getAuthorPage($num,$def,$users,$pgSize = NULL){
-			$author = $users->getFirstNode();
-			while($author != NULL){
-				$a = $author->readNode()->toArray();
-				if($a['First']." ".$a['Last'] == $def){ break; }
-				$author = $author->getNext();
-			}
+		public function getAuthorPage($con,$num,$def,$pgSize = NULL,$inactive = false){
 			$page = new DLList();
-			$post = $this->getPosts()->getFirstNode();
-			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
-			$i = 1;
-			if($num > 1){ $start = 1 + (($num-1)*$pgSize); $end = $num*$pgSize; }else{ $start = 1; $end = $pgSize; }
-			while($post != NULL){
-				$byAuth = false;
-				$p = $post->readNode()->toArray();
-				if($a['ID'] == $p['Author'] && $p['Active'] == 1){ $byAuth = true; }				
-				if($byAuth){
-					if($i >= $start && $i <= $end){
-						$p = $post->readNode();	
-						$page->insertLast($p);	
-					}elseif($i > $this->getPosts()->size() || $i > $end){ break; }
-					$i++;
-				}
-				$post = $post->getNext();
-			}
-			return $page;
-		}
-		public function getAuthorPageLive($con,$num,$def,$pgSize = NULL,$inactive = false){
-			$page = new DLList();
+			$crels = array();
+			foreach($this->_contRels as $key => $val){ $crels[] = $key; }
 			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
 			$start = ($num-1)*$pgSize;
 			$da = explode(" ",$def);
-			$sql = "SELECT d.*, p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM DBObj d INNER JOIN Posts p ON d.ID = p.DBO_ID LEFT JOIN Users u ON p.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON d.ID = r2.RID AND r2.Key = 'Category' WHERE p.Author=(SELECT DBO_ID FROM Users WHERE First ='".$da[0]."' AND Last = '".$da[1]."') AND p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC LIMIT ".$start.",".$pgSize;
-			if(!$inactive){	$sql = str_replace("WHERE","WHERE p.Active=1 AND",$sql); }
-			//error_log("SQL Blog->getAuthorPage: ".$sql);
-			$res = mysqli_query($con,$sql);
-			//if(!$res){error_log("SQL Blog->getAuthorPage ERROR: ".mysqli_error($con));}
-			while($row = mysqli_fetch_array($res)){
-				$p = new Post(NULL);
-				$p->initMysql($row);
-				$page->insertLast($p);
+			$sql = "SELECT d.*, c.*, concat(u.First,' ',u.Last) as `_Signature`";
+			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= ", group_concat(distinct concat(r".$c.".ID,':',r".$c.".RID,':',r".$c.".KID,':',r".$c.".Key,':',r".$c.".Code,':',r".$c.".Definition) separator ';') AS `".$crels[$i]."`"; }
+			$sql .= " FROM DBObj d INNER JOIN ".$this->_ctable." c ON d.ID = c.DBO_ID LEFT JOIN Users u ON c.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent'";
+			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= " LEFT JOIN Relationships r".$c." ON d.ID = r".$c.".RID AND r".$c.".Key = '".$crels[$i]."'"; }
+			$sql .= " WHERE c.Author=(SELECT DBO_ID FROM Users WHERE First ='".$da[0]."' AND Last = '".$da[1]."') AND c.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC LIMIT ".$start.",".$pgSize;
+			if(!$inactive){	$sql = str_replace("WHERE","WHERE c.Active=1 AND",$sql); }
+			$data = mysqli_query($con,$sql);
+			if($data){ return $this->processMYSQL($data);}
+			else{ error_log("SQL Collection->getAuthorPage: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false; }
+		}
+		public function rssGenFeed($con,$domain,$path,$cpath,$inactive = false){
+			$crels = array();
+			foreach($this->_contRels as $key => $val){ $crels[] = $key; }
+			$sql = "SELECT c.*, concat(u.First,' ',u.Last) as `_Signature`";
+			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= ", group_concat(distinct concat(r".$c.".ID,':',r".$c.".RID,':',r".$c.".KID,':',r".$c.".Key,':',r".$c.".Code,':',r".$c.".Definition) separator ';') AS `".$crels[$i]."`"; }
+			$sql .= " FROM DBObj d INNER JOIN ".$this->_ctable." c ON d.ID = c.DBO_ID LEFT JOIN Users u ON c.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent'";
+			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= " LEFT JOIN Relationships r".$c." ON d.ID = r".$c.".RID AND r".$c.".Key = '".$crels[$i]."'"; }
+			$sql .= " WHERE c.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC";
+			if(!$inactive){	$sql = str_replace("WHERE","WHERE c.Active=1 AND",$sql); }
+			$data = mysqli_query($con,$sql);
+			if(!$data){ error_log("SQL Collection->rssGenFeed: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false; }
+			else{ $contList = $this->processMYSQL($data);
+				$out = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>
+            	<rss version=\"2.0\" xmlns:atom=\"http://www.w3.org/2005/Atom\">
+					<channel>
+						<title>".$this->getTitle()."</title>
+						<link>".$domain."</link>
+						<description>".$this->getDesciption()."</description>
+						<atom:link href=\"".$domain.$path."\" rel=\"self\" type=\"application/rss+xml\" />";
+				$contItem = $contList->getFirstNode();
+				while($contItem != NULL){
+					$row = $contItem->readNode()->toArray();
+					$out .= "
+						<item>
+							<title>".$row['Title']."</title>
+							<link>".$domain.$cpath.$row['ID']."</link>
+							<guid>".$domain.$cpath.$row['ID']."</guid>
+							<description>".$row['Description']."</description>
+						</item>";
+					$contItem = $contItem->getNext();
+				}
+                $out .= "</channel>
+				</rss>";
+				return $out;		 
 			}
-			return $page;
 		}
-		public function load($con,$p = true,$c = true){
-			if($p){ $this->setPosts($con); }
-			if($c){ $this->setCategories($con); }
+		public function load($con,$c = true,$r = true){
+			if($c){ $this->setContent($con); }
+			if($r){ $this->setContRels($con); }
 		}
-		public function rssGenFeed($domain,$path){
-			$out = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>
-            <rss version=\"2.0\" xmlns:atom=\"http://www.w3.org/2005/Atom\">
-                <channel>
-                    <title>".$this->getTitle()."</title>
-                    <link>".$domain."</link>
-                    <description>".$this->getDesciption()."</description>
-                    <atom:link href=\"".$domain.$path."\" rel=\"self\" type=\"application/rss+xml\" />";
-                $post = $_SESSION['Blog']->getPosts()->getFirstNode();
-                while($post != NULL){
-                    $a = $post->readNode()->toArray();
-                    $out .= "
-                    <item>
-                        <title>".$a['Title']."</title>
-                        <link>".$domain."/blog/p/".$a['ID']."</link>
-                        <guid>".$domain."/blog/p/".$a['ID']."</guid>
-                        <description>".$a['Description']."</description>
-                    </item>";
-                    $post = $post->getNext();
-                }
-                $out .= "</channel>
-            </rss>";
-			return $out;
-		}
-		public function rssGenFeedLive($con,$domain,$path,$inactive = false){
-			$sql = "SELECT p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM DBObj d INNER JOIN Posts p ON d.ID = p.DBO_ID LEFT JOIN Users u ON p.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON d.ID = r2.RID AND r2.Key = 'Category' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC";
-			if(!$inactive){	$sql = str_replace("WHERE","WHERE p.Active=1 AND",$sql); }
-			$res = mysqli_query($con,$sql);
-			
-			$out = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>
-            <rss version=\"2.0\" xmlns:atom=\"http://www.w3.org/2005/Atom\">
-                <channel>
-                    <title>".$this->getTitle()."</title>
-                    <link>".$domain."</link>
-                    <description>".$this->getDesciption()."</description>
-                    <atom:link href=\"".$domain.$path."\" rel=\"self\" type=\"application/rss+xml\" />";
-                $post = $_SESSION['Blog']->getPosts()->getFirstNode();
-                while($row = mysqli_fetch_array($res)){
-                    $out .= "
-                    <item>
-                        <title>".$row['Title']."</title>
-                        <link>".$domain."/blog/p/".$row['ID']."</link>
-                        <guid>".$domain."/blog/p/".$row['ID']."</guid>
-                        <description>".$row['Description']."</description>
-                    </item>";
-                }
-                $out .= "</channel>
-            </rss>";
-			return $out;
-		}
-		public function getPost($con,$id){
-			$p = new Post($id);
-			$p->dbRead($con);
-			return $p;
-		}
-		public function getPosts(){ return $this->posts; }
-		/*public function getUsers(){ return $this->users; }*/
-		public function getCategories(){ return $this->categories; }
-		public function getPageSize(){ return (int)$this->pageSize; }
 		
-		protected function setPosts($con){
-			$sql = "SELECT d.*, p.*, concat(u.First,' ',u.Last) as `_Signature`, group_concat(distinct concat(r2.ID,':',r2.RID,':',r2.KID,':',r2.Key,':',r2.Code,':',r2.Definition) separator ';') AS `Categories` FROM DBObj d INNER JOIN Posts p ON d.ID = p.DBO_ID LEFT JOIN Users u ON p.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent' LEFT JOIN Relationships r2 ON d.ID = r2.RID AND r2.Key = 'Category' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC";
+		public function getContent(){ return $this->content; }
+		public function getContRels(){ return $this->_contRels; }
+		public function getPageSize(){ return (int)$this->pageSize; }
+		public function getArchiveDates($con){
+			$sql = "SELECT distinct from_unixtime(d.Created, '%Y%m') AS 'Month' FROM DBObj d INNER JOIN ".$this->_ctable." c ON d.ID = c.DBO_ID WHERE c.PID = ".$this->getID();
+			$dates = array();
 			$res = mysqli_query($con,$sql);
-			$this->posts = new DBOList();
-			while($row = mysqli_fetch_array($res)){
-				$p = new Post(NULL);
-				$p->initMysql($row);
-				$this->posts->insertLast($p);
-			}	
+			if(!$res){ error_log("SQL Collection->getArchiveDates: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false; }
+			else{
+				while($row = mysqli_fetch_array($res)){	$dates[] = $row['Month']; }
+				return $dates;
+			}
 		}
-		protected function setCategories($con){
-			$sql = "SELECT distinct k.*, k.ID as KID, 0 as RID FROM `Keys` k left join Relationships r ON k.ID = r.KID WHERE k.`Key` = 'Category' ORDER BY Definition ASC";
-			$res = mysqli_query($con,$sql);
-			$this->categories = new DBOList();
-			while($row = mysqli_fetch_array($res)){
-				$r = new Relation();
-				$r->initMysql($row);
-				$this->categories->insertLast($r);
+		
+		protected function setContent($con){
+			$sql = "SELECT d.*, c.*, concat(u.First,' ',u.Last) as `_Signature`";
+			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= ", group_concat(distinct concat(r".$c.".ID,':',r".$c.".RID,':',r".$c.".KID,':',r".$c.".Key,':',r".$c.".Code,':',r".$c.".Definition) separator ';') AS `".$crels[$i]."`"; }
+			$sql .= " FROM DBObj d INNER JOIN ".$this->_ctable." c ON d.ID = c.DBO_ID LEFT JOIN Users u ON c.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent'";
+			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= " LEFT JOIN Relationships r".$c." ON d.ID = r".$c.".RID AND r".$c.".Key = '".$crels[$i]."'"; }
+			$sql .= " WHERE c.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC";
+			$data = mysqli_query($con,$sql);
+			if($data){ $this->content = $this->processMYSQL($data); return true; }
+			else{ error_log("SQL Collection->setContent: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false; }
+			
+		}
+		protected function setContRels($con){
+			foreach($this->_contRels as $key => $val){
+				$sql = "SELECT distinct k.*, k.ID as KID, 0 as RID FROM `Keys` k left join Relationships r ON k.ID = r.KID WHERE k.`Key` = '".$key."' ORDER BY Definition ASC";
+				$res = mysqli_query($con,$sql);
+				$this->_contRels[$key] = new DBOList();
+				while($row = mysqli_fetch_array($res)){
+					$r = new Relation();
+					$r->initMysql($row);
+					$this->_contRels[$key]->insertLast($r);
+				}
 			}
 		}
 		protected function setPageSize($ps){ (int)$this->pageSize = $ps; }
 	}
 	
-	class Site extends Content{
+	class Blog extends Collection{
+		public function __construct($id){
+			Collection::__construct($id,"Blogs","Posts",array("Category"=>new DBOList()));
+		}
+		protected function processMYSQL($data){
+			if($data){
+				$list = new DBOList();
+				while($row = mysqli_fetch_array($data)){
+					$p = new Post(NULL);
+					$p->initMysql($row);
+					$list->insertLast($p);
+				}
+				return $list;
+			}else{ return false; }
+		}
+		public function getCategories(){
+			$rels = Collection::getContRels();
+			return $rels['Category'];
+		}
+	}
+
+	class MediaLibrary extends Collection{
+		public function __construct($id){
+			Collection::__construct($id,"MediaLibrarys","Media",array("Gallery"=>new DBOList()));
+		}
+		protected function processMYSQL($data){
+			if($data){
+				$list = new DBOList();
+				while($row = mysqli_fetch_array($data)){
+					$p = new Media(NULL);
+					$p->initMysql($row);
+					$list->insertLast($p);
+				}
+				return $list;
+			}else{ return false; }
+		}
+		public function getGalleries(){
+			$rels = Collection::getContRels();
+			return $rels['Gallery'];
+		}
 		
 	}
 	
+	class Site extends Content{
+		
+	}
+
+	class Media extends Content{
+		
+	}
+
 	class HTMLDoc extends Content{
-		protected $author;
 		protected $html;
 		
 		public function __construct($id,$t){
 			Content::__construct($id,$t);	
-			$this->author = NULL;
 			$this->html = NULL;
 		}
-/*		public function init($id,$a,$t,$d,$html,$h,$cd,$ud){
-			Content::init($id,$t,$d,$h,$cd,$ud);
-			$this->setAuthor($a);
-			$this->setHTML($html);
-		}*/
 		public function dbRead($con){
 			if(Content::dbRead($con)){
 				return true;
@@ -405,26 +348,19 @@
 		}
 		public function initMysql($row){ 
 			Content::initMysql($row);
-			if(isset($row['Author'])){ $this->setAuthor($row['Author']); }
 			if(isset($row['HTML'])){ $this->setHTML($row['HTML']); }
 		}
 		public function toArray(){
 			$a = Content::toArray();
-			$a['Author'] = $this->getAuthor();
 			$a['HTML'] = $this->getHTML();
 			return $a;
 		}
 		public function view($html,$ds = "F j, Y, g:i a"){
 			$html = Content::view($html,$ds);
-			$html = str_replace("{Author}",$this->getAuthor(),$html);
 			$html = str_replace("{HTML}",$this->getHTML(),$html);
 			return $html;
 		}
-		
-		protected function getAuthor(){ return (string)$this->author; }
 		protected function getHTML(){ return (string)$this->html; }
-		
-		protected function setAuthor($a){ (string)$this->author = $a; }
 		protected function setHTML($h){ (string)$this->html = $h; }
 	}
 	
@@ -436,11 +372,6 @@
 			HTMLDoc::__construct($id,"Comments");
 			$this->uri = NULL;
 		}
-/*		public function init($id,$a,$t,$d,$html,$h,$pid,$ap,$cd,$ud){
-			HTMLDoc::init($id,$a,$t,$d,$html,$h,$cd,$ud);
-			$this->setPostID($pid);
-			$this->setApproved($ap);
-		}*/
 		public function dbRead($con){
 			if(HTMLDoc::dbRead($con)){
 				return true;
@@ -479,10 +410,6 @@
 			Root::setRelationships(array('Parent'=>new Relationship("Blog","Parent"),'Category'=>new Relationship("Post","Category")));
 			$this->coverImage = NULL;
 		}
-/*		public function init($id,$a,$t,$d,$html,$h,$ci,$cd,$ud){
-			HTMLDoc::init($id,$a,$t,$d,$html,$h,$cd,$ud);
-			$this->setCoverImage($ci);
-		}*/
 		public function dbRead($con){
 			if(HTMLDoc::dbRead($con)){
 				$sql = "SELECT concat(First,' ',Last) as `Signature` FROM Users WHERE DBO_ID = ".$this->getAuthor();
@@ -506,10 +433,10 @@
 			HTMLDoc::initMysql($row);
 			if(isset($row['_Signature'])){ $this->setSignature($row['_Signature']); }
 			if(isset($row['CoverImage'])){ $this->setCoverImage($row['CoverImage']); }
-			if(isset($row['Categories'])){
-				$row['Categories'] = explode(";",$row['Categories']);
+			if(isset($row['Category'])){
+				$row['Category'] = explode(";",$row['Category']);
 				$categories = array();
-				foreach($row['Categories'] as $cat){ 
+				foreach($row['Category'] as $cat){ 
 					$a = explode(":",$cat); 
 					for($j = 0; $j < count($a); $j += 1){ if(!isset($a[$j])){ $a[$j] = NULL;} } 
 					$categories[] = array("ID"=>$a[0],"Created"=>NULL,"Updated"=>NULL,"RID"=>$a[1],"KID"=>$a[2],"Key"=>$a[3],"Code"=>$a[4],"Definition"=>$a[5]); 
@@ -549,10 +476,6 @@
 			HTMLDoc::__construct($id,"Pages");
 			$this->uri = NULL;
 		}
-/*		public function init($id,$a,$t,$d,$html,$h,$u,$cd,$ud){
-			HTMLDoc::init($id,$a,$t,$d,$html,$h,$cd,$ud);
-			$this->setURI($u);
-		}*/
 		public function dbRead($con){
 			if(HTMLDoc::dbRead($con)){
 				return true;
