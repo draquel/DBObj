@@ -296,7 +296,7 @@
 
 	class MediaLibrary extends Collection{
 		public function __construct($id){
-			Collection::__construct($id,"MediaLibrarys","Media",array("Gallery"=>new DBOList()));
+			Collection::__construct($id,"MediaLibrarys","Media",array("Gallery"=>new DBOList(),"Category"=>new DBOList()));
 		}
 		protected function processMYSQL($data){
 			if($data){
@@ -313,7 +313,10 @@
 			$rels = Collection::getContRels();
 			return $rels['Gallery'];
 		}
-		
+		public function getCategories(){
+			$rels = Collection::getContRels();
+			return $rels['Category'];
+		}
 	}
 	
 	class Site extends Content{
