@@ -248,6 +248,8 @@
 		}
 		
 		protected function setContent($con){
+			$crels = array();
+			foreach($this->_contRels as $key => $val){ $crels[] = $key; }
 			$sql = "SELECT d.*, c.*, concat(u.First,' ',u.Last) as `_Signature`";
 			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= ", group_concat(distinct concat(r".$c.".ID,':',r".$c.".RID,':',r".$c.".KID,':',r".$c.".Key,':',r".$c.".Code,':',r".$c.".Definition) separator ';') AS `".$crels[$i]."`"; }
 			$sql .= " FROM DBObj d INNER JOIN ".$this->_ctable." c ON d.ID = c.DBO_ID LEFT JOIN Users u ON c.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent'";
