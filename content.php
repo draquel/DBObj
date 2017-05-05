@@ -104,7 +104,7 @@
 			return $a;
 		}
 		
-		public function getPage($con,$num,$pgSize = NULL,$inactive = false){
+		public function getPage($con,$num,$pgSize = NULL,$inactive = false,$cWhere = NULL){
 			$page = new DLList();
 			$crels = array();
 			foreach($this->_contRels as $key => $val){ $crels[] = $key; }
@@ -116,11 +116,12 @@
 			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= " LEFT JOIN Relationships r".$c." ON d.ID = r".$c.".RID AND r".$c.".Key = '".$crels[$i]."'";	}
 			$sql .= "WHERE c.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC LIMIT ".$start.",".$pgSize;
 			if(!$inactive){	$sql = str_replace("WHERE","WHERE c.Active=1 AND",$sql); }
+			if($cWhere != NULL){ $sql = str_replace("WHERE",$cWhere." AND",$sql); }
 			$data = mysqli_query($con,$sql);
 			if($data){ return $this->processMYSQL($data);}
 			else{ error_log("SQL Collection->getPage: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false; }
 		}
-		public function getContentPage($con,$def,$inactive = false){
+		public function getContentPage($con,$def,$inactive = false,$cWhere = NULL){
 			$page = new DLList();
 			$crels = array();
 			foreach($this->_contRels as $key => $val){ $crels[] = $key; }
@@ -138,12 +139,13 @@
 			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= " LEFT JOIN Relationships r".$c." ON d.ID = r".$c.".RID AND r".$c.".Key = '".$crels[$i]."'"; }
 			$sql .= " WHERE c.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' AND d.ID < ".$def." GROUP BY d.ID ORDER BY d.Created DESC LIMIT 1)";
 			if(!$inactive){	$sql = str_replace("WHERE","WHERE c.Active=1 AND",$sql); }
+			if($cWhere != NULL){ $sql = str_replace("WHERE",$cWhere." AND",$sql); }
 			$data = mysqli_query($con,$sql);
 			if($data){ return $this->processMYSQL($data); }
 			else{ error_log("SQL Collection->getContentPage: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false; }
 
 		}
-		public function getArchivePage($con,$num,$def,$pgSize = NULL,$inactive = false){
+		public function getArchivePage($con,$num,$def,$pgSize = NULL,$inactive = false,$cWhere = NULL){
 			$page = new DLList();
 			$crels = array();
 			foreach($this->_contRels as $key => $val){ $crels[] = $key; }
@@ -155,11 +157,12 @@
 			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= " LEFT JOIN Relationships r".$c." ON d.ID = r".$c.".RID AND r".$c.".Key = '".$crels[$i]."'"; }
 			$sql .= " WHERE d.Created >= ".strtotime($def."01 00:00:00")." AND d.Created <= ".strtotime($def.date('t',strtotime($def."01"))." 00:00:00")." AND c.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC LIMIT ".$start.",".$pgSize;
 			if(!$inactive){	$sql = str_replace("WHERE","WHERE c.Active=1 AND",$sql); }
+			if($cWhere != NULL){ $sql = str_replace("WHERE",$cWhere." AND",$sql); }
 			$data = mysqli_query($con,$sql);
 			if($data){ return $this->processMYSQL($data);}
 			else{ error_log("SQL Collection->getArchivePage: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false; }
 		}
-		public function getRelPage($con,$num,$crel,$def,$pgSize = NULL,$inactive = false){
+		public function getRelPage($con,$num,$crel,$def,$pgSize = NULL,$inactive = false,$cWhere = NULL){
 			$page = new DLList();
 			$crels = array();
 			foreach($this->_contRels as $key => $val){ $crels[] = $key; }
@@ -171,11 +174,12 @@
 			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= " LEFT JOIN Relationships r".$c." ON d.ID = r".$c.".RID AND r".$c.".Key = '".$crels[$i]."'"; }
 			$sql .= " WHERE r".$n.".Definition='".$def."' AND c.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC LIMIT ".$start.",".$pgSize;
 			if(!$inactive){	$sql = str_replace("WHERE","WHERE c.Active=1 AND",$sql); }
+			if($cWhere != NULL){ $sql = str_replace("WHERE",$cWhere." AND",$sql); }
 			$data = mysqli_query($con,$sql);
 			if($data){ return $this->processMYSQL($data);}
 			else{ error_log("SQL Collection->getRelPage: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false; }
 		}
-		public function getAuthorPage($con,$num,$def,$pgSize = NULL,$inactive = false){
+		public function getAuthorPage($con,$num,$def,$pgSize = NULL,$inactive = false,$cWhere = NULL){
 			$page = new DLList();
 			$crels = array();
 			foreach($this->_contRels as $key => $val){ $crels[] = $key; }
@@ -188,11 +192,12 @@
 			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= " LEFT JOIN Relationships r".$c." ON d.ID = r".$c.".RID AND r".$c.".Key = '".$crels[$i]."'"; }
 			$sql .= " WHERE c.Author=(SELECT DBO_ID FROM Users WHERE First ='".$da[0]."' AND Last = '".$da[1]."') AND c.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC LIMIT ".$start.",".$pgSize;
 			if(!$inactive){	$sql = str_replace("WHERE","WHERE c.Active=1 AND",$sql); }
+			if($cWhere != NULL){ $sql = str_replace("WHERE",$cWhere." AND",$sql); }
 			$data = mysqli_query($con,$sql);
 			if($data){ return $this->processMYSQL($data);}
 			else{ error_log("SQL Collection->getAuthorPage: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false; }
 		}
-		public function rssGenFeed($con,$domain,$path,$cpath,$inactive = false){
+		public function rssGenFeed($con,$domain,$path,$cpath,$inactive = false,$cWhere = NULL){
 			$crels = array();
 			foreach($this->_contRels as $key => $val){ $crels[] = $key; }
 			$sql = "SELECT c.*, concat(u.First,' ',u.Last) as `_Signature`";
@@ -201,6 +206,7 @@
 			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= " LEFT JOIN Relationships r".$c." ON d.ID = r".$c.".RID AND r".$c.".Key = '".$crels[$i]."'"; }
 			$sql .= " WHERE c.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC";
 			if(!$inactive){	$sql = str_replace("WHERE","WHERE c.Active=1 AND",$sql); }
+			if($cWhere != NULL){ $sql = str_replace("WHERE",$cWhere." AND",$sql); }
 			$data = mysqli_query($con,$sql);
 			if(!$data){ error_log("SQL Collection->rssGenFeed: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false; }
 			else{ $contList = $this->processMYSQL($data);
@@ -293,6 +299,30 @@
 		public function getCategories(){
 			$rels = Collection::getContRels();
 			return $rels['Category'];
+		}
+		public function getPage($con,$num,$pgSize = NULL,$inactive = false,$unpublished = false){
+			if(!$unpublished){ return Collection::getPage($con,$num,$pgSize,$inactive,"WHERE c.Published <= ".time()); }
+			else{ return Collection::getPage($con,$num,$pgSize,$inactive); }
+		}
+		public function getContentPage($con,$def,$inactive = false,$unpublished = false){
+			if(!$unpublished){ return Collection::getContentPage($con,$def,$inactive,"WHERE c.Published <= ".time()); }
+			else{ return Collection::getContentPage($con,$def,$inactive); }
+		}
+		public function getArchivePage($con,$num,$def,$pgSize = NULL,$inactive = false,$unpublished = false){
+			if(!$unpublished){ return Collection::getArchivePage($con,$num,$def,$pgSize,$inactive,"WHERE c.Published <= ".time()); }
+			else{ return Collection::getArchivePage($con,$num,$def,$pgSize,$inactive); }
+		}
+		public function getRelPage($con,$num,$crel,$def,$pgSize = NULL,$inactive = false,$unpublished = false){
+			if(!$unpublished){ return Collection::getRelPage($con,$num,$crel,$def,$pgSize,$inactive,"WHERE c.Published <= ".time()); }
+			else{ return Collection::getRelPage($con,$num,$crel,$def,$pgSize,$inactive); }
+		}
+		public function getAuthorPage($con,$num,$def,$pgSize = NULL,$inactive = false,$unpublished = false){
+			if(!$unpublished){ return Collection::getAuthorPage($con,$num,$def,$pgSize,$inactive,"WHERE c.Published <= ".time()); }
+			else{ return Collection::getAuthorPage($con,$num,$def,$pgSize,$inactive); }
+		}
+		public function rssGenFeed($con,$domain,$path,$cpath,$inactive = false,$unpublished = false){
+			if(!$unpublished){ return Collection::rssGenFeed($con,$domain,$path,$cpath,$inactive,"WHERE c.Published <= ".time()); }
+			else{ return Collection::rssGenFeed($con,$domain,$path,$cpath,$inactive); }
 		}
 	}
 
@@ -409,6 +439,7 @@
 	class Post extends HTMLDoc{
 		public $_signature;
 		protected $coverImage;
+		protected $published;
 		
 		public function __construct($id){
 			HTMLDoc::__construct($id,"Posts");
@@ -438,11 +469,12 @@
 			HTMLDoc::initMysql($row);
 			if(isset($row['_Signature'])){ $this->setSignature($row['_Signature']); }
 			if(isset($row['CoverImage'])){ $this->setCoverImage($row['CoverImage']); }
+			if(isset($row['Published'])){ $this->setPublished($row['Published']); }
 			if(isset($row['Category'])){
 				$row['Category'] = explode(";",$row['Category']);
 				$categories = array();
 				foreach($row['Category'] as $cat){ 
-					$a = explode(":",$cat); 
+					$a = explode(":",$cat);
 					for($j = 0; $j < count($a); $j += 1){ if(!isset($a[$j])){ $a[$j] = NULL;} } 
 					$categories[] = array("ID"=>$a[0],"Created"=>NULL,"Updated"=>NULL,"RID"=>$a[1],"KID"=>$a[2],"Key"=>$a[3],"Code"=>$a[4],"Definition"=>$a[5]); 
 				}
@@ -455,11 +487,13 @@
 			$a = HTMLDoc::toArray();
 			$a['_Signature'] = $this->getSignature();
 			$a['CoverImage'] = $this->getCoverImage();
+			$a['Published'] = $this->getPublished(NULL);
 			return $a;
 		}
 		public function view($html,$ds = "F j, Y, g:i a",$ss = "http"){
 			$html_out = HTMLDoc::view($html[0],$ds);
 			$html_out = str_replace("{_Signature}",$this->getSignature(),$html_out);
+			$html_out = str_replace("{Published}",$this->getPublished($ds),$html_out);
 			if($this->getCoverImage() != "" && $this->getCoverImage() != NULL){ $html_out = str_replace("{CoverImage}",url().$this->getCoverImage(),$html_out);}else{ $html_out = str_replace("{CoverImage}","",$html_out); }
 			if(strpos($html[0],'{Category}') !== false && (isset($html[1]) && $html[1] != NULL)){ $html_out = str_replace("{Category}",$this->viewCategories($html[1]),$html_out); }
 			return $html_out;
@@ -469,9 +503,11 @@
 		public function getCategories(){ $rels = Root::getRelationships(); return $rels['Category']->getRels(); }
 		protected function getCoverImage(){ return (string)$this->coverImage; }
 		protected function getSignature(){ return (string)$this->_signature; }
+		protected function getPublished($ds){ if(isset($ds) && $ds != NULL && $ds != ""){ return (string)date($ds,$this->published); }else{ return (int)$this->published; } }
 		public function setCategories($con){ Root::setRelation("Post","Category",$con); }
-		protected function setSignature($s){ (string)$this->_signature = $s; }
-		protected function setCoverImage($i){ (string)$this->coverImage = $i; }
+		protected function setSignature($s){ $this->_signature = (string)$s; }
+		protected function setCoverImage($i){ $this->coverImage = (string)$i; }
+		protected function setPublished($i){ $this->published = (int)$i; }
 	}
 	
 	class Page extends HTMLDoc{
