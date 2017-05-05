@@ -11,12 +11,6 @@
 			$this->last = NULL;
 			$this->bday = NULL;
 		}
-/*		public function init($id,$f,$l,$bd,$cd,$ud){
-			Root::init($id,$cd,$ud);
-			$this->setFirst($f);
-			$this->setLast($l);
-			$this->setBDay($bd);
-		}*/
 		public function initMysql($row){ 
 			Root::initMysql($row);
 			if(isset($row['First'])){ $this->setFirst($row['First']); }
@@ -34,7 +28,7 @@
 			$this->mysqlEsc();
 			$sql = "SELECT * FROM `Persons` WHERE `ID`=\"".$this->getID()."\"";
 			return mysqli_query($con,$sql);
-		}*/
+		}
 		protected function db_insert($con){
 			$this->mysqlEsc();
 			$sql = "INSERT INTO `Persons` (`ID`,`First`,`Last`,`BDay`,`Created`,`Updated`) VALUES (NULL,\"".$this->getFirst()."\",\"".$this->getLast()."\",\"".$this->getBDay(NULL)."\",\"".time()."\",\"".time()."\")";
@@ -46,7 +40,7 @@
 			$this->mysqlEsc();
 			$sql = "UPDATE `Persons` SET `First`=\"".$this->getFirst()."\",`Last`=\"".$this->getLast()."\",`BDay`=\"".$this->getBDay(NULL)."\",`Updated`=\"".time()."\" WHERE `ID`=\"".$this->getID()."\"";
 			return mysqli_query($con,$sql);
-		}
+		}*/
 		protected function mysqlEsc($con){
 			Root::mysqlEsc($con);
 			$this->setFirst(mysqli_escape_string($con,$this->getFirst()));
@@ -73,9 +67,6 @@
 			$this->addresses = new DLList();
 			$this->phones = new DLList();
 		}
-/*		public function init($id,$f,$l,$bd,$cd,$ud){
-			Person::init($id,$f,$l,$bd,$cd,$ud);
-		}*/
 		public function initMysql($row){
 			Person::initMysql($row);
 			if(isset($row['Phones']) && $row['Phones'] != NULL){
@@ -169,7 +160,7 @@
 			$this->mysqlEsc();
 			$sql = "SELECT * FROM `Contact_Data` WHERE `ID`=\"".$this->getID()."\"";
 			return mysqli_query($con,$sql);	
-		}*/
+		}
 		protected function db_insert($con){
 			$this->mysqlEsc();
 			$sql = "INSERT INTO `Contacts` (`ID`,`First`,`Last`,`BDay`,`Created`,`Updated`) VALUES (NULL,\"".$this->getFirst()."\",\"".$this->getLast()."\",\"".$this->getBDay(NULL)."\",\"".$time()."\",\"".$time()."\")";
@@ -181,7 +172,7 @@
 			$this->mysqlEsc();
 			$sql = "UPDATE `Contacts` SET `First`=\"".$this->getFirst()."\",`Last`=\"".$this->getLast()."\",`BDay`=\"".$this->getBDay(NULL)."\",`Updated`=\"".time()."\" WHERE `ID`=\"".$this->getID()."\"";
 			return mysqli_query($con,$sql);
-		}
+		}*/
 		public function toArray(){
 			$a = Person::toArray();
 			$a['Addresses'] = array();
@@ -213,7 +204,7 @@
 		}
 		protected function setAddresses($con){ 
 			$this->addresses = new DLList();
-			$sql = "SELECT a.* FROM Addresses a LEFT JOIN Relationships r ON a.ID = r.RID AND r.Key = 'AddressesParent' WHERE a.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."'";
+			$sql = "SELECT a.* FROM Addresses a LEFT JOIN Relationships r ON a.DBO_ID = r.RID AND r.Key = 'Parent' WHERE a.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."'";
 			$res = mysqli_query($con,$sql);
 			while($row = mysqli_fetch_array($res)){
 				$a = new Address(NULL);
@@ -223,7 +214,7 @@
 		}
 		protected function setPhones($con){
 			$this->phones = new DLList();
-			$sql = "SELECT p.* FROM Phones p LEFT JOIN Relationships r ON p.ID = r.RID AND r.Key = 'PhonesParent' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."'";
+			$sql = "SELECT p.* FROM Phones p LEFT JOIN Relationships r ON p.DBO_ID = r.RID AND r.Key = 'Parent' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."'";
 			$res = mysqli_query($con,$sql);
 			while($row = mysqli_fetch_array($res)){
 				$p = new Phone(NULL);
@@ -233,7 +224,7 @@
 		}
 		protected function setEmails($con){
 			$this->emails = new DLList();
-			$sql = "SELECT e.* FROM Emails e LEFT JOIN Relationships r ON e.ID = r.RID AND r.Key = 'EmailsParent' WHERE e.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."'";
+			$sql = "SELECT e.* FROM Emails e LEFT JOIN Relationships r ON e.DBO_ID = r.RID AND r.Key = 'Parent' WHERE e.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."'";
 			$res = mysqli_query($con,$sql);
 			while($row = mysqli_fetch_array($res)){
 				$p = new Email(NULL);
@@ -284,12 +275,6 @@
 			$this->status = NULL;
 			$this->llogin = NULL;
 		}
-/*		public function init($id,$f,$l,$bd,$cd,$ud,$c,$t,$e,$u,$p,$ld){
-			Contact::init($id,$f,$l,$bd,$cd,$ud,$c,$t,$e);
-			$this->setUname($u);
-			$this->setPass($p);
-			$this->setLLogin($ld);
-		}*/
 		public function initMysql($row){
 			Contact::initMysql($row);
 			if(isset($row['Username'])){ $this->setUname($row['Username']); }
@@ -344,7 +329,7 @@
 			$this->mysqlEsc();
 			$sql = "SELECT * FROM `Users_Data` WHERE `ID`=\"".$this->getID()."\"";
 			return mysqli_query($con,$sql);
-		}*/
+		}
 		protected function db_insert($con){
 			$this->mysqlEsc();
 			$sql = "INSERT INTO `Users` (`ID`,`First`,`Last`,`BDay`,`Created`,`Updated`,`Username`,`Password`,`LLogin`) VALUES (NULL,\"".$this->getFirst()."\",\"".$this->getLast()."\",\"".$this->getBDay(NULL)."\",\"".time()."\",\"".time()."\",\"".$this->getUname()."\",\"".$this->getPass()."\",\"".$this->getLLogin(NULL)."\")";
@@ -356,7 +341,7 @@
 			$this->mysqlEsc();
 			$sql = "UPDATE `Users` SET `First`=\"".$this->getFirst()."\",`Last`=\"".$this->getLast()."\",`Updated`=\"".time()."\",`BDay`=\"".$this->getBDay(NULL)."\",`Username`=\"".$this->getUname()."\",`Password`=\"".$this->getPass()."\",`LLogin`=\"".$this->getLLogin()."\" WHERE `ID`=\"".$this->getID()."\"";
 			return mysql_query($sql,$con);
-		}
+		}*/
 		protected function mysqlEsc($con){
 			Contact::mysqlEsc($con);
 			$this->setUname(mysqli_escape_string($con,$this->getUname()));
