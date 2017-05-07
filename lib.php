@@ -5,6 +5,40 @@
 	function parseImgs($src){ $imgs = array(); $doc = new DOMDocument(); $doc->loadHTMLFile($src); $doc->preserveWhiteSpace = false; $images = $doc->getElementsByTagName('img'); if($images->length >= 1){ foreach($images as $i){ $imgs[] = $i->getAttribute('src'); } } return $imgs; }
 	function url($page = false){$ha = apache_request_headers();	if(isset($ha['X-Forwarded-Proto'])){ $protocol = $ha['X-Forwarded-Proto']; }else{$protocol = stripos($_SERVER['SERVER_PROTOCOL'],'https') === true ? 'https' : 'http'; } $protocol .= "://"; $out = $protocol . $_SERVER['HTTP_HOST']; if($page){ $out .= $_SERVER['REQUEST_URI']; } return $out; }
 	function free_result($con) { while (mysqli_more_results($con) && mysqli_next_result($con)){ $dummyResult = mysqli_use_result($con); if ($dummyResult instanceof mysqli_result) { mysqli_free_result($con); } } }
+	
+	function syncMailchimp($data) {
+		$apiKey = 'your api key';
+		$listId = 'your list id';
+
+		$memberId = md5(strtolower($data['email']));
+		$dataCenter = substr($apiKey,strpos($apiKey,'-')+1);
+		$url = 'https://' . $dataCenter . '.api.mailchimp.com/3.0/lists/' . $listId . '/members/' . $memberId;
+
+		$json = json_encode([
+			'email_address' => $data['email'],
+			'status'        => $data['status'], // "subscribed","unsubscribed","cleaned","pending"
+			'merge_fields'  => [
+				'FNAME'     => $data['firstname'],
+				'LNAME'     => $data['lastname']
+			]
+		]);
+
+		$ch = curl_init($url);
+
+		curl_setopt($ch, CURLOPT_USERPWD, 'user:' . $apiKey);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $json);                                                                                                                 
+
+		$result = curl_exec($ch);
+		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		curl_close($ch);
+
+		return $httpCode;
+	}
 	function str_sanitize($s){
 		//Replace Symbols With HTML Codes
 		str_replace(" ","&#32;",$s);
