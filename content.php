@@ -253,7 +253,7 @@
 			}
 		}
 		
-		protected function setContent($con){
+		protected function setContent($con,$inactive = false,$cWhere = NULL){
 			$crels = array();
 			foreach($this->_contRels as $key => $val){ $crels[] = $key; }
 			$sql = "SELECT d.*, c.*, concat(u.First,' ',u.Last) as `_Signature`";
@@ -261,6 +261,8 @@
 			$sql .= " FROM DBObj d INNER JOIN ".$this->_ctable." c ON d.ID = c.DBO_ID LEFT JOIN Users u ON c.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent'";
 			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= " LEFT JOIN Relationships r".$c." ON d.ID = r".$c.".RID AND r".$c.".Key = '".$crels[$i]."'"; }
 			$sql .= " WHERE c.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC";
+			if(!$inactive){	$sql = str_replace("WHERE","WHERE c.Active=1 AND",$sql); }
+			if($cWhere != NULL){ $sql = str_replace("WHERE",$cWhere." AND",$sql); }
 			$data = mysqli_query($con,$sql);
 			if($data){ $this->content = $this->processMYSQL($data); return true; }
 			else{ error_log("SQL Collection->setContent: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false; }
