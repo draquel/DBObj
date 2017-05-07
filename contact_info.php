@@ -1,22 +1,17 @@
 <?php
 
 	class ContactInfo extends Root{
-		private $name;
-		private $pid;
-		private $primary;
+		protected $name;
+		protected $pid;
+		protected $primary;
+		protected $_ptype;
 
-		public function __construct($id,$t){
+		public function __construct($id,$t,$ptype){
 			DBObj::__construct($id,$t);
 			$this->name = NULL;
 			$this->pid = NULL;
 			$this->primary = NULL;
 		}
-/*		public function init($id,$t,$cd,$ud,$n,$cid,$p){
-			DBObj::init($id,$t,$cd,$ud);
-			$this->setName($n);
-			$this->setPID($cid);
-			$this->setPrimary($p);
-		}*/
 		public function initMysql($row){
 			Root::initMysql($row);
 			if(isset($row['Name'])){ $this->setName($row['Name']); }
@@ -30,7 +25,6 @@
 			$p['Primary'] = $this->getPrimary();
 			return $p;
 		}
-
 		protected function mysqlEsc($con){
 			Root::mysqlEsc($con);
 			$this->setName(mysql_escape_string($con,$this->getName()));
@@ -52,23 +46,15 @@
 		private $state;
 		private $zip;
 		
-		public function __construct($id){
-			ContactInfo::__construct($id,"Addresses");
-			Root::setRelationships(array('AddressesParent'=>new Relationship("Address","AddressesParent")));
+		public function __construct($id,$ptype){
+			ContactInfo::__construct($id,"Addresses",$ptype);
+			Root::setRelationships(array('Parent'=>new Relationship($ptype,"Parent")));
 			$this->address = NULL;
 			$this->address2 = NULL;
 			$this->city = NULL;
 			$this->state = NULL;
 			$this->zip = NULL;
 		}
-/*		public function init($id,$cd,$ud,$n,$cid,$p,$ad,$ad2,$c,$s,$z){
-			ContactInfo::init($id,"Addresses",$cd,$ud,$n,$cid,$p);
-			$this->setAddress($ad);
-			$this->setAddress2($ad2);
-			$this->setCity($c);
-			$this->setState($s);
-			$this->setZip($z);
-		}*/
 		public function initMysql($row){
 			ContactInfo::initMysql($row);
 			$this->setAddress($row['Address']);
@@ -94,27 +80,6 @@
 			$p['State'] = $this->getState();
 			$p['Zip'] = $this->getZip();
 			return $p;
-		}
-/*		protected function db_select($con){
-			$this->mysqlEsc();
-			$sql ="SELECT * FROM `Addresses` WHERE `ID`=\"".$this->getID()."\"";
-			return mysqli_query($con,$sql);
-		}*/
-		protected function db_insert($con){
-			$this->mysqlEsc();
-			$sql = "INSERT INTO `Addresses` (`ID`,`PID`,`Name`,`Address`,`Address2`,`City`,`State`,`Zip`,`Primary`,`Created`,`Updated`) VALUES (NULL,\"".$this->getPID()."\",\"".$this->getName()."\",\"".$this->getAddress()."\",\"".$this->getAddress2()."\",\"".$this->getCity()."\",\"".$this->getState()."\",\"".$this->getZip()."\",\"".$this->getPrimary()."\",\"".time()."\",\"".time()."\")";
-			$this->setID(mysql_insert_id($con));
-			return mysqli_query($con,$sql);
-		}
-		protected function db_update($con){
-			$this->mysqlEsc();
-			$sql ="UPDATE `Addresses` SET `PID`=\"".$this->getPID()."\",`Name`=\"".$this->getName()."\",`Address`=\"".$this->getAddress()."\",`Address2`=\"".$this->getAddress2()."\",`City`=\"".$this->getCity()."\",`State`=\"".$this->getState()."\",`Zip`=\"".$this->getZip()."\",`Primary`=\"".$this->getPrimary()."\",`Updated`=\"".time()."\" WHERE `ID`=\"".$this->getID()."\"";
-			return mysqli_query($con,$sql);
-		}
-		protected function db_delete($con){
-			$this->mysqlEsc();
-			$sql = "DELETE FROM `Addresses` WHERE `ID`=".$this->getID();
-			return mysqli_query($con,$sql);
 		}
 		protected function mysqlEsc($con){
 			ContactInfo::mysqlEsc($con);
@@ -144,21 +109,14 @@
 		private $num;
 		private $ext;
 
-		public function __construct($id){
-			ContactInfo::__construct($id,"Phones");
-			Root::setRelationships(array('PhonesParent'=>new Relationship("Phone","PhonesParent")));
+		public function __construct($id,$ptype){
+			ContactInfo::__construct($id,"Phones",$ptype);
+			Root::setRelationships(array('Parent'=>new Relationship($ptype,"Parent")));
 			$this->region = NULL;
 			$this->area = NULL;
 			$this->num = NULL;
 			$this->ext = NULL;
 		}
-/*		public function init($id,$cd,$ud,$n,$cid,$p,$r,$a,$num,$e){
-			ContactInfo::init($id,"Phones",$cd,$ud,$n,$cid,$p);
-			$this->setRegion($r);
-			$this->setArea($a);
-			$this->setNumber($num);
-			$this->setExtention($e);
-		}*/
 		public function initMysql($row){ 
 			ContactInfo::initMysql($row); 
 			$this->setRegion($row['Region']); 
@@ -182,28 +140,6 @@
 			$p['Ext'] = $this->getExtention();
 			return $p;
 		}
-
-/*		protected function db_select($con){
-			$this->mysqlEsc();
-			$sql = "SELECT * FROM `Phones` WHERE `ID`=\"".$this->getID()."\"";
-			return mysqli_query($con,$sql);
-		}*/
-		protected function db_insert($con){
-			$this->mysqlEsc();
-			$sql = "INSERT INTO `Phones` (`ID`,`PID`,`Region`,`Area`,`Number`,`Name`,`Ext`,`Primary`,`Created`,`Updated`) VALUES (NULL,\"".$this->getPID()."\",\"".$this->getRegion()."\",\"".$this->getArea()."\",\"".$this->getNumber()."\",\"".$this->getName()."\",\"".$this->getExtention()."\",\"".$this->getPrimary()."\",\"".time()."\",\"".time()."\")";
-			$res = mysqli_query($con,$sql);
-			$this->setID(mysql_insert_id($con));
-			return $res;
-		}
-		protected function db_update($con){
-			$this->mysqlEsc();
-			$sql = "UPDATE `Phones` SET `PID`=\"".$this->getPID()."\",`Region`=\"".$this->getRegion()."\",`Area`=\"".$this->getArea()."\",`Number`=\"".$this->getNumber()."\",`Name`=\"".$this->getName()."\",`Ext`=\"".$this->getExtention()."\",`Primary`=\"".$this->getPrimary()."\",`Updated`=\"".time()."\" WHERE `ID`=\"".$this->getID()."\"";
-			return mysqli_query($con,$sql);
-		}
-		protected function db_delete($con){
-			$this->mysqlEsc();
-			$sql = "DELETE FROM `Phones` WHERE `ID`=".$this->getID();
-		}
 		protected function mysqlEsc($con){
 			ContactInfo::mysqlEsc($con);
 			$this->setRegion(mysql_escape_string($con,$this->getRegion()));
@@ -214,26 +150,22 @@
 
 		private function setRegion($r){ $this->region = (string)$r; }
 		private function setArea($a){ $this->area = (string)$a; }
-		private function setNumber($n){ $this->number = (string)$n; }
+		private function setNumber($n){ $this->num = (string)$n; }
 		private function setExtention($e){ $this->ext = (string)$e; }
 		private function getRegion(){ return (string)$this->region; }
 		private function getArea(){ return (string)$this->area; }
-		private function getNumber(){ return (string)$this->number; }
+		private function getNumber(){ return (string)$this->num; }
 		private function getExtention(){ return (string)$this->ext; }
 	}
 
 	class Email extends ContactInfo{
 		private $address;
 
-		public function __construct($id){
-			ContactInfo::__construct($id,"Emails");
-			Root::setRelationships(array('EmailsParent'=>new Relationship("Email","EmailsParent")));
+		public function __construct($id,$ptype){
+			ContactInfo::__construct($id,"Emails",$ptype);
+			Root::setRelationships(array('EmailsParent'=>new Relationship($ptype,"Parent")));
 			$this->address = NULL;
 		}
-/*		public function init($id,$cd,$ud,$n,$cid,$p,$a){
-			ContactInfo::init($id,"Emails",$cd,$ud,$n,$cid,$p);
-			$this->setAddress($a);
-		}*/
 		public function initMysql($row){ 
 			ContactInfo::initMysql($row);
 			$this->setAddress($row['Address']);
@@ -251,31 +183,9 @@
 		public function db_unique($con){
 			$this->msqlEsc();
 			$sql = "SELECT * FROM `Emails` WHERE `Address`=\"".$this->getAddress()."\"";
-			if($this->getID != 1){ $sql .= " AND ID !=\"".$this->getID()."\""; }
+			if($this->getID() != 0){ $sql .= " AND ID !=\"".$this->getID()."\""; }
 			$res = mysqli_query($con,$sql);
 			if(mysql_num_rows($res) == 0){ return true; }else{ return false; }
-		}
-/*		protected function db_select($con){
-			$this->mysqlEsc();
-			$sql = "SELECT * FROM `Emails` WHERE `ID`=\"".$this->getID()."\"";
-			return mysqli_query($con,$sql);
-		}*/
-		protected function db_insert($con){
-			$this->mysqlEsc();
-			$sql = "INSERT INTO `Emails` (`ID`,`PID`,`Name`,`Address`,`Primary`,`Created`,`Updated`) VALUES (NULL,\"".$this->getPID()."\",\"".$this->getName()."\",\"".$this->getAddress()."\",\"".$this->getPrimary()."\",\"".time()."\",\"".time()."\")";
-			$res = mysqli_query($con,$sql);
-			$this->setID(mysql_insert_id($con));
-			return $res;
-		}
-		protected function db_update($con){
-			$this->mysqlEsc();
-			$sql = "UPDATE `Emails` SET `PID`=\"".$this->getPID()."\",`Address`=\"".$this->getAddress()."\",`Primary`=\"".$this->getPrimary()."\",`Name`=\"".$this->getName()."\",`Updated`=\"".time()."\" WHERE `ID`=\"".$this->getID()."\"";
-			return mysqli_query($con,$sql);
-		}
-		protected function db_delete($con){
-			$this->mysqlEsc();
-			$sql = "DELETE FROM `Emails` WHERE `ID`=".$this->getID();
-			return mysqli_query($con,$sql);
 		}
 		protected function mysqlEsc($con){
 			ContactInfo::mysqlEsc($con);
