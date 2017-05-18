@@ -75,7 +75,7 @@
 				for($i = 0; $i < count($ph); $i += 1){
 					$p = explode(":",$ph[$i]);
 					for($j = 0; $j < count($p); $j += 1){ if(!isset($p[$j])){ $p[$j] = NULL;} }
-					$po = new Phone(NULL);
+					$po = new Phone(NULL,rtrim($this->getTable(),"s"));
 					//$po->init($p[0],$p[1],$p[2],$p[3],$p[4],$p[5],$p[6],$p[7],$p[8],$p[9]);
 					$po->initMysql(array("ID"=>$p[0],"Created"=>$p[1],"Updated"=>$p[2],"Name"=>$p[3],"PID"=>$p[4],"Primary"=>$p[5],"Region"=>$p[6],"Area"=>$p[7],"Number"=>$p[8],"Ext"=>$p[9]));
 					$this->getPhones()->insertLast($po);
@@ -87,7 +87,7 @@
 				for($i = 0; $i < count($em); $i += 1){
                 	$e = explode(":",$em[$i]);
 					for($j = 0; $j < count($e); $j += 1){ if(!isset($e[$j])){ $e[$j] = NULL;} }
-					$eo = new Email(NULL);
+					$eo = new Email(NULL,rtrim($this->getTable(),"s"));
 					//$eo->init($e[0],$e[1],$e[2],$e[3],$e[4],$e[5],$e[6]);
 					$eo->initMysql(array("ID"=>$e[0],"Name"=>$e[1],"PID"=>$e[2],"Primary"=>$e[3],"Address"=>$e[4]));
 					$this->getEmails()->insertLast($eo);
@@ -99,7 +99,7 @@
 				for($i = 0; $i < count($ad); $i += 1){
                 	$a = explode(":",$ad[$i]);
 					for($j = 0; $j < count($a); $j += 1){ if(!isset($a[$j])){ $a[$j] = NULL;} }
-					$ao = new Address(NULL);
+					$ao = new Address(NULL,rtrim($this->getTable(),"s"));
 					//$ao->init($a[0],$a[1],$a[2],$a[3],$a[4],$a[5],$a[6],$a[7],$a[8],$a[9],$a[10]);
 					$ao->initMysql(array("ID"=>$a[0],"Created"=>$a[1],"Updated"=>$a[2],"Name"=>$a[3],"PID"=>$a[4],"Primary"=>$a[5],"Address"=>$a[6],"Address2"=>$a[7],"City"=>$a[8],"State"=>$a[9],"Zip"=>$a[10]));
 					$this->getAddresses()->insertLast($ao);
@@ -134,7 +134,7 @@
 		public function dbWrite($con){
 			if(Root::dbWrite($con)){
 				//Write Contact Info
-				$this->setContactInfoCID();
+				$this->setContactInfoPID();
 				$em = $this->getEmails()->getFirstNode();
 				while($em != NULL){
 					$e = $em->readNode();
@@ -206,31 +206,40 @@
 			$this->addresses = new DLList();
 			$sql = "SELECT a.* FROM Addresses a LEFT JOIN Relationships r ON a.DBO_ID = r.RID AND r.Key = 'Parent' WHERE a.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."'";
 			$res = mysqli_query($con,$sql);
-			while($row = mysqli_fetch_array($res)){
-				$a = new Address(NULL);
-				$a->initMysql($row);
-				$this->addresses->insertLast($a);
-			}
+			if($res){
+				while($row = mysqli_fetch_array($res)){
+					$a = new Address(NULL,rtrim($this->getTable()));
+					$a->initMysql($row);
+					$this->addresses->insertLast($a);
+				}
+				return true;
+			}else{ error_log("SQL Contact->SetAddresses: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false; }
 		}
 		protected function setPhones($con){
 			$this->phones = new DLList();
 			$sql = "SELECT p.* FROM Phones p LEFT JOIN Relationships r ON p.DBO_ID = r.RID AND r.Key = 'Parent' WHERE p.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."'";
 			$res = mysqli_query($con,$sql);
-			while($row = mysqli_fetch_array($res)){
-				$p = new Phone(NULL);
-				$p->initMysql($row);
-				$this->phones->insertLast($p);
-			}
+			if($res){
+				while($row = mysqli_fetch_array($res)){
+					$p = new Phone(NULL,rtrim($this->getTable()));
+					$p->initMysql($row);
+					$this->phones->insertLast($p);
+				}
+				return true;
+			}else{ error_log("SQL Contact->SetPhones: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false; }
 		}
 		protected function setEmails($con){
 			$this->emails = new DLList();
 			$sql = "SELECT e.* FROM Emails e LEFT JOIN Relationships r ON e.DBO_ID = r.RID AND r.Key = 'Parent' WHERE e.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."'";
 			$res = mysqli_query($con,$sql);
-			while($row = mysqli_fetch_array($res)){
-				$p = new Email(NULL);
-				$p->initMysql($row);
-				$this->emails->insertLast($p);
-			}
+			if($res){
+				while($row = mysqli_fetch_array($res)){
+					$p = new Email(NULL,rtrim($this->getTable()));
+					$p->initMysql($row);
+					$this->emails->insertLast($p);
+				}
+				return true;
+			}else{ error_log("SQL Contact->SetEmails: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false; }
 		}
 		private function setContactInfoPID(){
 			$em = $this->getEmails()->getFirstNode();
@@ -280,10 +289,10 @@
 			if(isset($row['Username'])){ $this->setUname($row['Username']); }
 			if(isset($row['Password'])){ $this->setPass($row['Password']); }
 			if(isset($row['LLogin'])){ $this->setLLogin($row['LLogin']); }
-			if(isset($row['Group'])){
-				$row['Group'] = explode(";",$row['Group']);
+			if(isset($row['Groups'])){
+				$row['Groups'] = explode(";",$row['Groups']);
 				$groups = array();
-				foreach($row['Group'] as $cat){ 
+				foreach($row['Groups'] as $cat){ 
 					$a = explode(":",$cat); 
 					for($j = 0; $j < count($a); $j += 1){ if(!isset($a[$j])){ $a[$j] = NULL;} } 
 					$groups[] = array("ID"=>$a[0],"Created"=>NULL,"Updated"=>NULL,"RID"=>$a[1],"KID"=>$a[2],"Key"=>$a[3],"Code"=>$a[4],"Definition"=>$a[5]); 
@@ -297,27 +306,20 @@
 			$a = Contact::toArray();
 			$a['Username'] = $this->getUname();
 			$a['LLogin'] = $this->getLLogin('Y-m-d');
-			$a['Groups'] = array();
-			$g = $this->getGroups()->getFirstNode();
-			for($i = 0; $i < $this->getGroups()->size(); $i += 1){ 
-				$ar = $g->readNode()->toArray();
-				$a['Group'][$i] = $ar;
-				$g = $g->getNext();
-			}
 			return $a; 
 		}
 		public function login($u,$p,$con){
 			$ea = false;
 			if(validEmail($u)){
 				$ea = true;
-				$e = new Email(NULL);
+				$e = new Email(NULL,rtrim($this->getTable(),"s"));
 				$e->initMysql(array("ID"=>NULL,"Created"=>NULL,"Updated"=>NULL,"Name"=>"Login","PID"=>NULL,"Primary"=>1,"Address"=>$u));
 				$this->getEmails()->insertLast($e);
 			}else{ $this->setUname($u); }
 			$this->setPass(sha1($p));
 			$row = $this->authenticate($con);
 			if($row){
-				if($ea){ $this->setEmails(new DLList()); }
+				if($ea){ $this->setEmails($con); }
 				$this->initMysql($row);
 				return TRUE;
 			}else{ return FALSE; }
@@ -350,10 +352,10 @@
 		protected function authenticate($con){
 			/*$this->mysqlEsc($con);*/
 			if($this->getUname() != NULL){
-				$sql = "SELECT d.*, u.*, group_concat(distinct concat(r.ID,':',r.RID,':',r.KID,':',r.Key,':',r.Code,':',r.Definition) separator ';') AS `Group`, group_concat(distinct concat(`p`.`DBO_ID`,':',`p`.`Name`,':',`p`.`PID`,':',`p`.`Primary`,':',`p`.`Region`,':',`p`.`Area`,':',`p`.`Number`,':',`p`.`Ext`) separator ';') AS `Phones`, group_concat(distinct concat(`a`.`DBO_ID`,':',`a`.`Name`,':',`a`.`PID`,':',`a`.`Primary`,':',`a`.`Address`,':',`a`.`Address2`,':',`a`.`City`,':',`a`.`State`,':',`a`.`Zip`) separator ';') AS `Addresses`, group_concat(distinct concat(`e`.`DBO_ID`,':',`e`.`Name`,':',`e`.`PID`,':',`e`.`Primary`,':',`e`.`Address`) separator ';') AS `Emails`  FROM DBObj d INNER JOIN Users u ON d.ID = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Group' LEFT JOIN `Addresses` `a` on `a`.`PID` = `d`.`ID` LEFT JOIN `Phones` `p` on `p`.`PID` = `d`.`ID` LEFT JOIN `Emails` `e` on `e`.`PID` = `d`.`ID` WHERE u.Username = '".$this->getUname()."' AND u.Password = '".$this->getPass()."' GROUP BY d.ID ORDER BY d.Created DESC";
+				$sql = "SELECT d.*, u.*, group_concat(distinct concat(r.ID,':',r.RID,':',r.KID,':',r.Key,':',r.Code,':',r.Definition) separator ';') AS `Groups`, group_concat(distinct concat(`p`.`DBO_ID`,':',`p`.`Name`,':',`p`.`PID`,':',`p`.`Primary`,':',`p`.`Region`,':',`p`.`Area`,':',`p`.`Number`,':',`p`.`Ext`) separator ';') AS `Phones`, group_concat(distinct concat(`a`.`DBO_ID`,':',`a`.`Name`,':',`a`.`PID`,':',`a`.`Primary`,':',`a`.`Address`,':',`a`.`Address2`,':',`a`.`City`,':',`a`.`State`,':',`a`.`Zip`) separator ';') AS `Addresses`, group_concat(distinct concat(`e`.`DBO_ID`,':',`e`.`Name`,':',`e`.`PID`,':',`e`.`Primary`,':',`e`.`Address`) separator ';') AS `Emails`  FROM DBObj d INNER JOIN Users u ON d.ID = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Group' LEFT JOIN `Addresses` `a` on `a`.`PID` = `d`.`ID` LEFT JOIN `Phones` `p` on `p`.`PID` = `d`.`ID` LEFT JOIN `Emails` `e` on `e`.`PID` = `d`.`ID` WHERE u.Username = '".$this->getUname()."' AND u.Password = '".$this->getPass()."' GROUP BY d.ID ORDER BY d.Created DESC";
 			}elseif($this->getEmails()->size() > 0){
 				$ea = $this->getEmails()->getFirstNode()->readNode()->toArray();
-				$sql = "SELECT d.*, u.*, group_concat(distinct concat(r.ID,':',r.RID,':',r.KID,':',r.Key,':',r.Code,':',r.Definition) separator ';') AS `Group`, group_concat(distinct concat(`p`.`DBO_ID`,':',`p`.`Name`,':',`p`.`PID`,':',`p`.`Primary`,':',`p`.`Region`,':',`p`.`Area`,':',`p`.`Number`,':',`p`.`Ext`) separator ';') AS `Phones`, group_concat(distinct concat(`a`.`DBO_ID`,':',`a`.`Name`,':',`a`.`PID`,':',`a`.`Primary`,':',`a`.`Address`,':',`a`.`Address2`,':',`a`.`City`,':',`a`.`State`,':',`a`.`Zip`) separator ';') AS `Addresses`, group_concat(distinct concat(`e`.`DBO_ID`,':',`e`.`Name`,':',`e`.`PID`,':',`e`.`Primary`,':',`e`.`Address`) separator ';') AS `Emails`  FROM DBObj d INNER JOIN Users u ON d.ID = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Group' LEFT JOIN `Addresses` `a` on `a`.`PID` = `d`.`ID` LEFT JOIN `Phones` `p` on `p`.`PID` = `d`.`ID` LEFT JOIN `Emails` `e` on `e`.`PID` = `d`.`ID` WHERE e.Address = '".$ea['Address']."' AND u.Password = '".$this->getPass()."' GROUP BY d.ID ORDER BY d.Created DESC";	
+				$sql = "SELECT d.*, u.*, group_concat(distinct concat(r.ID,':',r.RID,':',r.KID,':',r.Key,':',r.Code,':',r.Definition) separator ';') AS `Groups`, group_concat(distinct concat(`p`.`DBO_ID`,':',`p`.`Name`,':',`p`.`PID`,':',`p`.`Primary`,':',`p`.`Region`,':',`p`.`Area`,':',`p`.`Number`,':',`p`.`Ext`) separator ';') AS `Phones`, group_concat(distinct concat(`a`.`DBO_ID`,':',`a`.`Name`,':',`a`.`PID`,':',`a`.`Primary`,':',`a`.`Address`,':',`a`.`Address2`,':',`a`.`City`,':',`a`.`State`,':',`a`.`Zip`) separator ';') AS `Addresses`, group_concat(distinct concat(`e`.`DBO_ID`,':',`e`.`Name`,':',`e`.`PID`,':',`e`.`Primary`,':',`e`.`Address`) separator ';') AS `Emails`  FROM DBObj d INNER JOIN Users u ON d.ID = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Group' LEFT JOIN `Addresses` `a` on `a`.`PID` = `d`.`ID` LEFT JOIN `Phones` `p` on `p`.`PID` = `d`.`ID` LEFT JOIN `Emails` `e` on `e`.`PID` = `d`.`ID` WHERE e.Address = '".$ea['Address']."' AND u.Password = '".$this->getPass()."' GROUP BY d.ID ORDER BY d.Created DESC";	
 			}else{ return false; }
 			$res = mysqli_query($con,$sql);
 			if(mysqli_num_rows($res) == 1){ return mysqli_fetch_array($res); }else{ return FALSE; }

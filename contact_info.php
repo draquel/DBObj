@@ -11,6 +11,7 @@
 			$this->name = NULL;
 			$this->pid = NULL;
 			$this->primary = NULL;
+			$this->_ptype = $ptype;
 		}
 		public function initMysql($row){
 			Root::initMysql($row);
@@ -48,7 +49,7 @@
 		
 		public function __construct($id,$ptype){
 			ContactInfo::__construct($id,"Addresses",$ptype);
-			Root::setRelationships(array('Parent'=>new Relationship($ptype,"Parent")));
+			Root::setRelationships(array('Parent'=>new Relationship($this->_ptype,"Parent")));
 			$this->address = NULL;
 			$this->address2 = NULL;
 			$this->city = NULL;
@@ -111,7 +112,7 @@
 
 		public function __construct($id,$ptype){
 			ContactInfo::__construct($id,"Phones",$ptype);
-			Root::setRelationships(array('Parent'=>new Relationship($ptype,"Parent")));
+			Root::setRelationships(array('Parent'=>new Relationship($this->_ptype,"Parent")));
 			$this->region = NULL;
 			$this->area = NULL;
 			$this->num = NULL;
@@ -163,7 +164,7 @@
 
 		public function __construct($id,$ptype){
 			ContactInfo::__construct($id,"Emails",$ptype);
-			Root::setRelationships(array('EmailsParent'=>new Relationship($ptype,"Parent")));
+			Root::setRelationships(array('EmailsParent'=>new Relationship($this->_ptype,"Parent")));
 			$this->address = NULL;
 		}
 		public function initMysql($row){ 
