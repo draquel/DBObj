@@ -56,7 +56,8 @@
 				if($values != ""){ $values .= ","; }
 				if(gettype($value) == "array"){ $values .= "\"".implode(",",$value)."\""; }elseif(gettype($value) == "integer"){ $values .= $value; }else{ $values .= "\"".mysqli_real_escape_string($con,$value)."\""; }
 			}
-			$sql = "INSERT INTO DBObj (`Table`,Created,Updated) VALUES (\"".$this->table."\",".time().",".time()."); INSERT INTO ".$this->table." (DBO_ID,".$fields.") VALUES (LAST_INSERT_ID(),".$values.")";
+			if($this->created == NULL || $this->updated == NULL){ $ctime = time(); $utime = time(); }else{ $ctime = $this->created; $utime = $this->updated; }
+			$sql = "INSERT INTO DBObj (`Table`,Created,Updated) VALUES (\"".$this->table."\",".$ctime.",".$utime."); INSERT INTO ".$this->table." (DBO_ID,".$fields.") VALUES (LAST_INSERT_ID(),".$values.")";
 			if(mysqli_multi_query($con,$sql)){
 				$i = 0;
 				do{
@@ -173,6 +174,10 @@
 			}
 			if($succ){ return DBObj::dbDelete($con); }else{ error_log("Root->Delete: MYSQL ERROR: ".mysqli_error($con)); return false; }
 		}
+		protected function mysqlEsc($con){
+			DBObj::mysqlEsc($con);
+			
+		}
 		public function toArray(){
 			$p = DBObj::toArray();
 			$p['Rels'] = array();
@@ -241,6 +246,13 @@
 			if(isset($row['Code'])){ $this->setCode($row['Code']); }
 			if(isset($row['Definition'])){ $this->setDefinition($row['Definition']); }
 		}
+		protected function mysqlEsc($con){
+			DBObj::mysqlEsc($con);
+			$this->setRID(mysqli_escape_string($con,$this->getRID()));
+			$this->setKID(mysqli_escape_string($con,$this->getKID()));
+			$this->setCode(mysqli_escape_string($con,$this->getCode()));
+			$this->setDefinition(mysqli_escape_string($con,$this->getDefinition()));
+		}
 		public function toArray(){
 			$p = DBObj::toArray();
 			$p['RID'] = $this->getRID();
@@ -259,37 +271,27 @@
 			$this->mysqlEsc($con);
 			$time = time();
 			$sql = "INSERT INTO `Relations` (`ID`,`RID`,`KID`,`Created`,`Updated`) VALUES (NULL,\"".$this->getRID()."\",\"".$this->getKID()."\",\"".$time."\",\"".$time."\")";
-			error_log("SQL Relation->Insert: ".$sql);
+			//error_log("SQL Relation->Insert: ".$sql);
 			$res = mysqli_query($con,$sql);
 			if($res){ 
 				$this->setID(mysqli_insert_id($con)); 
 				$this->setCreated($time);
 				$this->setUpdated($time);
-			}else{
-				error_log("MYSQL ERROR: " . mysqli_error($con));
-			}
+			}else{ error_log("SQL Relation->Insert: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false; }
 			return $res;
 		}
 		protected function db_update($con){
 			//$this->mysqlEsc($con);
 			$time = time();
 			$sql = "UPDATE `Relations` SET `RID`=\"".$this->getRID()."\",`KID`=\"".$this->getKID()."\",`Updated`=\"".$time."\" WHERE `ID`=\"".$this->getID()."\"";
-			error_log("SQL Relation->Update: ".$sql);
 			$res = mysqli_query($con,$sql);
-			if($res){ $this->setUpdated($time); }
+			if($res){ $this->setUpdated($time); }else{ error_log("SQL Relation->Update: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false; }
 			return $res;
 		}
 		protected function db_delete($con){
 			//$this->mysqlEsc($con);
 			$sql = "DELETE FROM `Relations` WHERE `ID`=".$this->getID();
 			return mysqli_query($con,$sql);
-		}
-		protected function mysqlEsc($con){
-			DBObj::mysqlEsc($con);
-			$this->setKID(mysqli_escape_string($con,$this->getKID()));
-			$this->setRID(mysqli_escape_string($con,$this->getRID()));
-			$this->setCode(mysqli_escape_string($con,$this->getCode()));
-			$this->setDefinition(mysqli_escape_string($con,$this->getDefinition()));
 		}
 		public function setRID($id){ $this->rid = (int)$id;}
 		private function setKID($id){ $this->kid = (int)$id;}
@@ -386,6 +388,11 @@
 		private function mysqlEsc($con){
 			$this->setRoot(mysqli_escape_string($con,$this->getRoot()));
 			$this->setKey(mysqli_escape_string($con,$this->getKey()));
+			$rel = $this->getRels()->getFirstNode();
+			while($rel != NULL){
+				$rel->readNode()->mysqlEsc($con);
+				$rel = $rel->getNext();
+			}
 		}
 		private function setRoot($r){ $this->root = (string)ucfirst($r); }
 		private function setKey($k){ $this->key = (string)ucfirst($k); }
