@@ -135,8 +135,7 @@
 			$page = new DLList();
 			$crels = array();
 			foreach($this->_contRels as $key => $val){ $crels[] = $key; }
-			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
-			$start = ($num-1)*$pgSize;
+			if($pgSize == NULL && $pgSize != 0){ $pgSize = $this->getPageSize(); }
 			$sql = "SELECT d.*, c.*, concat(u.First,' ',u.Last) as `_Signature`";
 			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= ", group_concat(distinct concat(r".$c.".ID,':',r".$c.".RID,':',r".$c.".KID,':',r".$c.".Key,':',r".$c.".Code,':',r".$c.".Definition) separator ';') AS `".$crels[$i]."`"; }
 			$sql .= " FROM DBObj d INNER JOIN ".$this->_ctable." c ON d.ID = c.DBO_ID LEFT JOIN Users u ON c.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent'";
@@ -177,7 +176,7 @@
 			$page = new DLList();
 			$crels = array();
 			foreach($this->_contRels as $key => $val){ $crels[] = $key; }
-			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
+			if($pgSize == NULL && $pgSize != 0){ $pgSize = $this->getPageSize(); }
 			$start = ($num-1)*$pgSize;
 			$sql = "SELECT d.*, c.*, concat(u.First,' ',u.Last) as `_Signature`";
 			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= ", group_concat(distinct concat(r".$c.".ID,':',r".$c.".RID,':',r".$c.".KID,':',r".$c.".Key,':',r".$c.".Code,':',r".$c.".Definition) separator ';') AS `".$crels[$i]."`"; }
@@ -195,7 +194,7 @@
 			$page = new DLList();
 			$crels = array();
 			foreach($this->_contRels as $key => $val){ $crels[] = $key; }
-			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
+			if($pgSize == NULL && $pgSize != 0){ $pgSize = $this->getPageSize(); }
 			$sql = "SELECT d.*, c.*, concat(u.First,' ',u.Last) as `_Signature`";
 			for($i = 0; $i < count($crels); $i++){ $c = $i+1; if($crels[$i] == $crel){ $n = $c; } $sql .= ", group_concat(distinct concat(r".$c.".ID,':',r".$c.".RID,':',r".$c.".KID,':',r".$c.".Key,':',r".$c.".Code,':',r".$c.".Definition) separator ';') AS `".$crels[$i]."`"; }
 			$sql .= " FROM DBObj d INNER JOIN ".$this->_ctable." c ON d.ID = c.DBO_ID LEFT JOIN Users u ON c.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent'";
@@ -212,7 +211,7 @@
 			$page = new DLList();
 			$crels = array();
 			foreach($this->_contRels as $key => $val){ $crels[] = $key; }
-			if($pgSize == NULL){ $pgSize = $this->getPageSize(); }
+			if($pgSize == NULL && $pgSize != 0){ $pgSize = $this->getPageSize(); }
 			$start = ($num-1)*$pgSize;
 			$da = explode(" ",$def);
 			$sql = "SELECT d.*, c.*, concat(u.First,' ',u.Last) as `_Signature`";
@@ -395,9 +394,10 @@
 			if($crel == NULL && $def == NULL){ $page = Collection::getPage($con,NULL,0); }
 			else{ $page = Collection::getRelPage($con,NULL,$crel,$def,0); }
 			$html = "<div id=\"carousel-example-generic\" class=\"carousel slide\" data-ride=\"carousel\">";
-			if($page->size() <= 5){
+			$size = $page->size();
+			if($size <= 5){
 				$html .= "<!-- Indicators --><ol class=\"carousel-indicators\">";
-				for($i = 0; $i < $page->size(); $i++){ $html .= "<li data-target=\"#carousel-example-generic\" data-slide-to=\"".$i."\" ".($i = 0 ? "class=\"active\"" : "")."></li>"; }
+				for($i = 0; $i < $size; $i++){ $html .= "<li data-target=\"#carousel-example-generic\" data-slide-to=\"".$i."\" ".($i == 0 ? "class=\"active\"" : "")."></li>"; }
 				$html .= "</ol>";
 			}
 			$html .= "<!-- Wrapper for slides --><div class=\"carousel-inner\" role=\"listbox\">";
