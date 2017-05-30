@@ -5,7 +5,7 @@ require_once("media.class.php");
 
 class MediaLibrary extends Collection{
 	public function __construct($id){
-		Collection::__construct($id,"MediaLibrarys","Media",array("Gallery"=>new DLList(),"Category"=>new DLList()));
+		Collection::__construct($id,"MediaLibrarys","Media",array("Gallery"=>new DBOList(),"Category"=>new DBOList()));
 	}
 	protected function processMYSQL($data){
 		if($data){

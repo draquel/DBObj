@@ -73,7 +73,7 @@ class Relationship{
 
 	public function getRels(){ return $this->relations; }
 	public function setRelRID($id){
-		$nRels = new DLList();
+		$nRels = new DBOList();
 		$rel = $this->relations->getFirstNode();
 		while($rel != NULL){
 			$r = $rel->readNode();

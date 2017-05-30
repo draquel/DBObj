@@ -1,11 +1,11 @@
 <?php
 require_once("collection.class.php");
-require_once("dllist.class.php");
+require_once("dbolist.class.php");
 require_once("post.class.php");
 
 class Blog extends Collection{
 	public function __construct($id){
-		Collection::__construct($id,"Blogs","Posts",array("Category"=>new DLList()));
+		Collection::__construct($id,"Blogs","Posts",array("Category"=>new DBOList()));
 	}
 	protected function processMYSQL($data){
 		if($data){
