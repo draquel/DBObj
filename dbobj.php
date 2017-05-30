@@ -43,7 +43,7 @@
 			if($this->getID() != NULL && $this->getID() != 0){
 				$sql = "SELECT * FROM DBObj po INNER JOIN ".$this->table." co ON po.ID = co.DBO_ID WHERE po.ID = ".$this->getID();
 				$res = mysqli_query($con,$sql);
-				if(!$res){ error_log("SQL DBObj->Select: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); }
+				if(!$res){ error_log("SQL DBObj->Select: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); error_log("MYSQL Stack Trace: ".debug_print_backtrace()); }
 				return $res;
 			}else{ return false; }
 		}

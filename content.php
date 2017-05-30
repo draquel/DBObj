@@ -135,13 +135,13 @@
 			$page = new DLList();
 			$crels = array();
 			foreach($this->_contRels as $key => $val){ $crels[] = $key; }
-			if($pgSize == NULL && $pgSize != 0){ $pgSize = $this->getPageSize(); }
+			if($pgSize === NULL && $pgSize !== 0){ $pgSize = $this->getPageSize(); }
 			$sql = "SELECT d.*, c.*, concat(u.First,' ',u.Last) as `_Signature`";
 			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= ", group_concat(distinct concat(r".$c.".ID,':',r".$c.".RID,':',r".$c.".KID,':',r".$c.".Key,':',r".$c.".Code,':',r".$c.".Definition) separator ';') AS `".$crels[$i]."`"; }
 			$sql .= " FROM DBObj d INNER JOIN ".$this->_ctable." c ON d.ID = c.DBO_ID LEFT JOIN Users u ON c.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent'";
 			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= " LEFT JOIN Relationships r".$c." ON d.ID = r".$c.".RID AND r".$c.".Key = '".$crels[$i]."'";	}
 			$sql .= "WHERE c.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC";
-			if($pgSize != 0){ $start = ($num-1)*$pgSize; $sql .= " LIMIT ".$start.",".$pgSize; }
+			if($pgSize !== 0){ $start = ($num-1)*$pgSize; $sql .= " LIMIT ".$start.",".$pgSize; }
 			if(!$inactive){	$sql = str_replace("WHERE","WHERE c.Active=1 AND",$sql); }
 			if($cWhere != NULL){ $sql = str_replace("WHERE",$cWhere." AND",$sql); }
 			$data = mysqli_query($con,$sql);
@@ -176,14 +176,14 @@
 			$page = new DLList();
 			$crels = array();
 			foreach($this->_contRels as $key => $val){ $crels[] = $key; }
-			if($pgSize == NULL && $pgSize != 0){ $pgSize = $this->getPageSize(); }
+			if($pgSize === NULL && $pgSize !== 0){ $pgSize = $this->getPageSize(); }
 			$start = ($num-1)*$pgSize;
 			$sql = "SELECT d.*, c.*, concat(u.First,' ',u.Last) as `_Signature`";
 			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= ", group_concat(distinct concat(r".$c.".ID,':',r".$c.".RID,':',r".$c.".KID,':',r".$c.".Key,':',r".$c.".Code,':',r".$c.".Definition) separator ';') AS `".$crels[$i]."`"; }
 			$sql .= " FROM DBObj d INNER JOIN ".$this->_ctable." c ON d.ID = c.DBO_ID LEFT JOIN Users u ON c.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent'";
 			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= " LEFT JOIN Relationships r".$c." ON d.ID = r".$c.".RID AND r".$c.".Key = '".$crels[$i]."'"; }
 			$sql .= " WHERE d.Created >= ".strtotime($def."01 00:00:00")." AND d.Created <= ".strtotime($def.date('t',strtotime($def."01"))." 00:00:00")." AND c.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC";
-			if($pgSize != 0){ $start = ($num-1)*$pgSize; $sql .= " LIMIT ".$start.",".$pgSize; }
+			if($pgSize !== 0){ $start = ($num-1)*$pgSize; $sql .= " LIMIT ".$start.",".$pgSize; }
 			if(!$inactive){	$sql = str_replace("WHERE","WHERE c.Active=1 AND",$sql); }
 			if($cWhere != NULL){ $sql = str_replace("WHERE",$cWhere." AND",$sql); }
 			$data = mysqli_query($con,$sql);
@@ -194,13 +194,13 @@
 			$page = new DLList();
 			$crels = array();
 			foreach($this->_contRels as $key => $val){ $crels[] = $key; }
-			if($pgSize == NULL && $pgSize != 0){ $pgSize = $this->getPageSize(); }
+			if($pgSize === NULL && $pgSize !== 0){ $pgSize = $this->getPageSize(); }
 			$sql = "SELECT d.*, c.*, concat(u.First,' ',u.Last) as `_Signature`";
 			for($i = 0; $i < count($crels); $i++){ $c = $i+1; if($crels[$i] == $crel){ $n = $c; } $sql .= ", group_concat(distinct concat(r".$c.".ID,':',r".$c.".RID,':',r".$c.".KID,':',r".$c.".Key,':',r".$c.".Code,':',r".$c.".Definition) separator ';') AS `".$crels[$i]."`"; }
 			$sql .= " FROM DBObj d INNER JOIN ".$this->_ctable." c ON d.ID = c.DBO_ID LEFT JOIN Users u ON c.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent'";
 			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= " LEFT JOIN Relationships r".$c." ON d.ID = r".$c.".RID AND r".$c.".Key = '".$crels[$i]."'"; }
 			$sql .= " WHERE r".$n.".Definition=\"".$def."\" AND c.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC";
-			if($pgSize != 0){ $start = ($num-1)*$pgSize; $sql .= " LIMIT ".$start.",".$pgSize; }
+			if($pgSize !== 0){ $start = ($num-1)*$pgSize; $sql .= " LIMIT ".$start.",".$pgSize; }
 			if(!$inactive){	$sql = str_replace("WHERE","WHERE c.Active=1 AND",$sql); }
 			if($cWhere != NULL){ $sql = str_replace("WHERE",$cWhere." AND",$sql); }
 			$data = mysqli_query($con,$sql);
@@ -211,7 +211,7 @@
 			$page = new DLList();
 			$crels = array();
 			foreach($this->_contRels as $key => $val){ $crels[] = $key; }
-			if($pgSize == NULL && $pgSize != 0){ $pgSize = $this->getPageSize(); }
+			if($pgSize === NULL && $pgSize !== 0){ $pgSize = $this->getPageSize(); }
 			$start = ($num-1)*$pgSize;
 			$da = explode(" ",$def);
 			$sql = "SELECT d.*, c.*, concat(u.First,' ',u.Last) as `_Signature`";
@@ -219,7 +219,7 @@
 			$sql .= " FROM DBObj d INNER JOIN ".$this->_ctable." c ON d.ID = c.DBO_ID LEFT JOIN Users u ON c.Author = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Parent'";
 			for($i = 0; $i < count($crels); $i++){ $c = $i+1; $sql .= " LEFT JOIN Relationships r".$c." ON d.ID = r".$c.".RID AND r".$c.".Key = '".$crels[$i]."'"; }
 			$sql .= " WHERE c.Author=(SELECT DBO_ID FROM Users WHERE First ='".$da[0]."' AND Last = '".$da[1]."') AND c.PID=".$this->getID()." AND r.Code = '".rtrim($this->getTable(),"s")."' GROUP BY d.ID ORDER BY d.Created DESC";
-			if($pgSize != 0){ $start = ($num-1)*$pgSize; $sql .= " LIMIT ".$start.",".$pgSize; }
+			if($pgSize !== 0){ $start = ($num-1)*$pgSize; $sql .= " LIMIT ".$start.",".$pgSize; }
 			if(!$inactive){	$sql = str_replace("WHERE","WHERE c.Active=1 AND",$sql); }
 			if($cWhere != NULL){ $sql = str_replace("WHERE",$cWhere." AND",$sql); }
 			$data = mysqli_query($con,$sql);
@@ -427,10 +427,6 @@
 		}
 	}
 	
-/*	class Site extends Content{
-		
-	}*/
-
 	class Media extends Content{
 		protected $uri;
 		protected $type;
@@ -506,10 +502,15 @@
 		}
 		public function viewCategories($html,$ds = "F j, Y, g:i a"){ return Root::viewRel("Category",$html,$ds); }
 		protected function viewGalleries($html,$ds = "F j, Y, g:i a"){ return Root::viewRel("Gallery",$html,$ds); }
-		protected function getURI(){ return (string)$this->html; }
+		
+		public function getCategories(){ $rels = Root::getRelationships(); return $rels['Category']->getRels(); }
+		public function getGalleries(){ $rels = Root::getRelationships(); return $rels['Gallery']->getRels(); }
+		protected function getURI(){ return (string)$this->uri; }
 		protected function getType(){ return (string)$this->type; }
-		protected function setURI($u){ (string)$this->html = $u; }
+		protected function setURI($u){ (string)$this->uri = $u; }
 		protected function setType($t){ (string)$this->type = $t; }
+		public function setCategories($con){ Root::setRelation("Media","Category",$con); }
+		public function setGalleries($con){ Root::setRelation("Media","Gallery",$con); }
 	}
 
 	class HTMLDoc extends Content{

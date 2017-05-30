@@ -6,7 +6,7 @@
 		protected $primary;
 		protected $_ptype;
 
-		public function __construct($id,$t,$ptype){
+		public function __construct($id,$t){
 			DBObj::__construct($id,$t);
 			$this->name = NULL;
 			$this->pid = NULL;
