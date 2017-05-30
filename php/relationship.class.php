@@ -1,5 +1,5 @@
 <?php
-require_once("dllist.class.php");
+require_once("dbolist.class.php");
 require_once("relation.class.php");
 
 class Relationship{
@@ -10,7 +10,7 @@ class Relationship{
 	public function __construct($r,$k){
 		$this->root = $r;
 		$this->key = $k;
-		$this->relations = new DLList();
+		$this->relations = new DBOList();
 	}
 	public function init($root,$key){
 		$this->setRoot($root);
@@ -28,7 +28,7 @@ class Relationship{
 	public function setRel($r){ $this->relations->insertLast($r); }
 	public function setRels($con,$id){
 		/*$this->mysqlEsc($con);*/
-		$this->relations = new DLList();
+		$this->relations = new DBOList();
 		$sql = "SELECT * FROM Relationships WHERE `Key` = '".$this->getKey()."' AND `RID`=".$id;
 		$res = mysqli_query($con,$sql);
 		while($row = mysqli_fetch_array($res)){
