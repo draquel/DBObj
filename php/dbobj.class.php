@@ -13,83 +13,98 @@ abstract class DBObj{
 		$this->created = NULL;
 		$this->updated = NULL;
 	}
-	public function initMysql($row){ if(isset($row['ID'])){ $this->setID($row['ID']); } if(isset($row['Created'])){ $this->setCreated($row['Created']); } if(isset($row['Updated'])){ $this->setUpdated($row['Updated']); } }
-	public function dbRead($con){
+	public function init($row){ if(isset($row['ID'])){ $this->setID($row['ID']); } if(isset($row['Created'])){ $this->setCreated($row['Created']); } if(isset($row['Updated'])){ $this->setUpdated($row['Updated']); } }
+	public function dbRead($pdo){
 		if(isset($this->id) && $this->getID() != NULL && $this->getID() != 0){ 
-			$res = $this->db_select($con);
-			if($res){ $this->initMysql(mysqli_fetch_array($res)); return true; }else{ return $res; }
+			$res = $this->db_select($pdo);
+			if($res){ $this->init($res->fetch(PDO::FETCH_ASSOC)); return true; }else{ return $res; }
 		}else{ return false; }
 	}
-	public function dbWrite($con){
+	public function dbWrite($pdo){
 		if(isset($this->id)){
-			if($this->getID() == 0){ return $this->db_insert($con); }else{ return $this->db_update($con); }
+			if($this->getID() == 0){ return $this->db_insert($pdo); }else{ return $this->db_update($pdo); }
 		}else{ return false; }
 	}
-	public function dbDelete($con){
+	public function dbDelete($pdo){
 		if(isset($this->id)){
-			if($this->getID() == 0){ return false; }else{ return $this->db_delete($con); }
+			if($this->getID() == 0){ return false; }else{ return $this->db_delete($pdo); }
 		}else{ return false; }
 	}
-	protected function db_select($con){
-		if($this->getID() != NULL && $this->getID() != 0){
-			$sql = "SELECT * FROM DBObj po INNER JOIN ".$this->table." co ON po.ID = co.DBO_ID WHERE po.ID = ".$this->getID();
-			$res = mysqli_query($con,$sql);
-			if(!$res){ error_log("SQL DBObj->Select: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); error_log("MYSQL Stack Trace: ".debug_print_backtrace()); }
-			return $res;
-		}else{ return false; }
+	protected function db_select($pdo){
+		$sql = "SELECT * FROM DBObj po INNER JOIN ".$this->getTable()." co ON po.ID = co.DBO_ID WHERE po.ID = :ID";
+		try{
+			$stmt = $pdo->prepare($sql);
+			$stmt->execute(['ID'=>$this->getID()]);
+		}
+		catch(PDOException $e){
+			error_log("SQL DBObj->Select: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace());
+			return false;
+		}
+		return $stmt;
 	}
-	protected function db_insert($con){
-		$a = $this->toArray(); $fields = ""; $values = "";
-		foreach($a as $key => $value){
+	protected function db_insert($pdo){
+		$a = $this->toArray(); $fields = ""; $val_str = ""; $values = array();
+		foreach($a as $key => $val){
 			if(substr($key,0,1) == "_" || $key == "Rels" || $key == "ID" || $key == "Table" || $key == "Created" || $key == "Updated" || gettype($value) == "object"){ continue; }
 			if($fields != ""){ $fields .= ","; }
 			$fields .= $key;
+			if($val_str != ""){ $val_str .= ","; }
+			$val_str .= ":".ucfirst($key);
 			if($values != ""){ $values .= ","; }
-			if(gettype($value) == "array"){ $values .= "\"".implode(",",$value)."\""; }elseif(gettype($value) == "integer"){ $values .= $value; }else{ $values .= "\"".mysqli_real_escape_string($con,$value)."\""; }
+			if(gettype($val) == "array"){ $values[ucfirst($key)] = implode(",",$val); }else{ $values[ucfirst($key)] = $val; }
 		}
-		if($this->created == NULL || $this->updated == NULL){ $ctime = time(); $utime = time(); }else{ $ctime = $this->created; $utime = $this->updated; }
-		$sql = "INSERT INTO DBObj (`Table`,Created,Updated) VALUES (\"".$this->table."\",".$ctime.",".$utime."); INSERT INTO ".$this->table." (DBO_ID,".$fields.") VALUES (LAST_INSERT_ID(),".$values.")";
-		if(mysqli_multi_query($con,$sql)){
-			$i = 0;
-			do{
-				if($i == 0){ $this->setID($con->insert_id); }
-				if($res = mysqli_store_result($con)){ mysqli_free_result($result); }
-				if($con->more_results() === FALSE){ break; }else{ $i++; }
-			}while(mysqli_next_result($con));
-			return true;
-		}else{ error_log("SQL DBObj->Insert: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false; }
+		if($this->created == NULL || $this->updated == NULL){ $values['Created'] = time(); $values['Updated'] = time(); }else{ $values['Created'] = $this->created; $values['Updated'] = $this->updated; }
+		$sql = "INSERT INTO DBObj (`Table`,Created,Updated) VALUES (\"".$this->table."\",:Created,:Updated); INSERT INTO ".$this->table." (DBO_ID,".$fields.") VALUES (LAST_INSERT_ID(),".$val_str.")";
+		try{
+			$stmt = $pdo->prepare($sql);
+			$stmt->execute($values);
+			$this->setID($pdo->lastInsertId());
+		}
+		catch(PDOException $e){
+			error_log("SQL DBObj->Insert: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace());
+			return false;
+		}
+		return $stmt;
 	}
-	protected function db_update($con){ 
+	protected function db_update($pdo){ 
 		$a = $this->toArray();
-		$sql = "UPDATE DBObj SET Updated = ".time()." WHERE ID = ".$this->getID()."; UPDATE ".$this->getTable()." SET ";
+		$sql = "UPDATE DBObj SET Updated = ".time()." WHERE ID = :ID; UPDATE ".$this->getTable()." SET ";
 		$i = 0;
+		$values = array("ID"=>$this->getID());
 		foreach($a as $key => $val){
 			$i++;
 			if(substr($key,0,1) == "_" || $key == "Rels" || $key == "ID" || $key == "Table" || $key == "Created" || $key == "Updated" || gettype($val) == "object"){ continue; }
-			$sql .= ucfirst($key)." = ";
-			if(gettype($val) == "array"){ $sql .= "\"".implode(",",$val)."\""; }elseif(gettype($val) == "integer"){ $sql .= $val; }else{ $sql .= "\"".mysqli_real_escape_string($con,$val)."\""; }
+			$sql .= ucfirst($key)." = :".ucfirst($key);
+			if(gettype($val) == "array"){ $values[ucfirst($key)] = implode(",",$val); }else{ $values[ucfirst($key)] = $val; }
 			if($i != count($a)){ $sql .= ","; }
 		}
-		$sql .= " WHERE DBO_ID = ".$this->getID().";";
-		if(mysqli_multi_query($con,$sql)){
-			do{
-				if($res = mysqli_store_result($con)){ mysqli_free_result($result); }
-				if($con->more_results() === FALSE){ break; }
-			}while(mysqli_next_result($con));
-			return true;
-		}else{ error_log("SQL DBObj->Update: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false;}	
+		$sql .= " WHERE DBO_ID = :ID;";
+		try{
+			$stmt = $pdo->prepare($sql);
+			$stmt->execute($values);
+		}
+		catch(PDOException $e){
+			error_log("SQL DBObj->Update: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace());
+			return false;
+		}
+		return $stmt;
 	}
-	protected function db_delete($con){
-		$sql = "DELETE FROM ".$this->getTable()." WHERE DBO_ID = ".$this->getID()."; DELETE FROM DBObj WHERE ID = ".$this->getID();
-		if(mysqli_multi_query($con,$sql)){
-			do{	if($res = mysqli_store_result($con)){ mysqli_free_result($result); } }while(mysqli_next_result($con));
-			return true;
-		}else{ error_log("SQL DBObj->Delete: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); return false;}	
+	protected function db_delete($pdo){
+		$sql = "DELETE FROM ".$this->getTable()." WHERE DBO_ID = :ID; DELETE FROM DBObj WHERE ID = :ID";
+		try{
+			$stmt = $pdo->prepare($sql);
+			$stmt->execute(["ID"=>$this->getID()]);
+		}
+		catch(PDOException $e){
+			error_log("SQL DBObj->Delete: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace());
+			return false;
+		}
+		return $stmt;
 	}
-	protected function mysqlEsc($con){
-		$this->setID(mysqli_escape_string($con,$this->getID()));
-		$this->setCreated(mysqli_escape_string($con,$this->getCreated(NULL)));
-		$this->setUpdated(mysqli_escape_string($con,$this->getUpdated(NULL)));			
+	protected function mysqlEsc($pdo){
+		$this->setID(mysqli_escape_string($pdo,$this->getID()));
+		$this->setCreated(mysqli_escape_string($pdo,$this->getCreated(NULL)));
+		$this->setUpdated(mysqli_escape_string($pdo,$this->getUpdated(NULL)));			
 	}
 	public function toArray(){ return array("ID"=>$this->getID(),"Created"=>$this->getCreated(NULL),"Updated"=>$this->getUpdated(NULL)); }
 	public function view($html,$ds = "F j, Y, g:i a"){

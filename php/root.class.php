@@ -8,36 +8,36 @@ class Root extends DBObj{
 		DBObj::__construct($id,$t);
 		$this->relationships = array();
 	}
-	public function dbRead($con){
-		if(DBObj::dbRead($con)){
-			foreach($this->getRelationships() as $key => $rel){ $this->setRelation($this->getTable(),$key,$con); }
+	public function dbRead($pdo){
+		if(DBObj::dbRead($pdo)){
+			foreach($this->getRelationships() as $key => $rel){ $this->setRelation($this->getTable(),$key,$pdo); }
 			return true;
 		}else{ return false; }
 	}
-	public function dbWrite($con){
-		if(DBObj::dbWrite($con)){
+	public function dbWrite($pdo){
+		if(DBObj::dbWrite($pdo)){
 			$a = $this->getRelationships();
 			$succ = true;
 			foreach($a as $k => $r){ 
-				if($k == "Parent"){ $ra = $r->toArray(); if($ra[0]['ID'] == 0){ $this->setParentID($con,$ra[0]['RID']); } }
+				if($k == "Parent"){ $ra = $r->toArray(); if($ra[0]['ID'] == 0){ $this->setParentID($pdo,$ra[0]['RID']); } }
 				$r->setRelRID($this->getID());
-				$succ = $r->dbWrite($con); 
+				$succ = $r->dbWrite($pdo); 
 				if(!$succ){break;}
 			}
 			return $succ;
 		}else{ return false; }
 	}
-	public function dbDelete($con){
+	public function dbDelete($pdo){
 		$a = $this->getRelationships();
 		foreach($a as $k => $r){ 
 			$r->setRelRID($this->getID());
-			$succ = $r->dbDelete($con);
+			$succ = $r->dbDelete($pdo);
 			if(!$succ){break;}
 		}
-		if($succ){ return DBObj::dbDelete($con); }else{ error_log("Root->Delete: MYSQL ERROR: ".mysqli_error($con)); return false; }
+		if($succ){ return DBObj::dbDelete($pdo); }else{ error_log("Root->Delete: SQL ERROR: ".mysqli_error($pdo)); return false; }
 	}
-	protected function mysqlEsc($con){
-		DBObj::mysqlEsc($con);
+	protected function mysqlEsc($pdo){
+		DBObj::mysqlEsc($pdo);
 
 	}
 	public function toArray(){
@@ -73,11 +73,22 @@ class Root extends DBObj{
 	protected function getRelationships(){ return $this->relationships; }
 	public function getRelation($key){ if(isset($this->relationships[$key])){ return $this->relationships[$key]; }else{ return false; } }
 
-	protected function setParentID($con,$pid){ $sql = "UPDATE ".$this->getTable()." SET PID=".$pid." WHERE DBO_ID=".$this->getID(); return mysqli_query($con,$sql); }
+	protected function setParentID($pdo,$pid){ 
+		$sql = "UPDATE ".$this->getTable()." SET PID=:PID WHERE DBO_ID=:ID";
+		try{
+			$stmt = $pdo->prepare($sql);
+			$stmt->execute(["ID"=>$this->getID(),"PID"=>$pid]);
+		}
+		catch(PDOException $e){
+			error_log("SQL Root->setParentID: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace());
+			return false;
+		}
+		return true; 
+	}
 	protected function setRelationships($rel){ if(is_array($rel)){ $this->relationships = $rel; return TRUE; }else{ return FALSE; } }
-	protected function setRelation($root,$key,$con){
+	protected function setRelation($root,$key,$pdo){
 		$this->relationships[$key] = new Relationship($root,$key);
-		$this->relationships[$key]->setRels($con,$this->getID());
+		$this->relationships[$key]->setRels($pdo,$this->getID());
 	}
 }
 

@@ -12,28 +12,35 @@ class Relationship{
 		$this->key = $k;
 		$this->relations = new DBOList();
 	}
-	public function init($root,$key){
+	/*public function init($root,$key){
 		$this->setRoot($root);
 		$this->setKey($key);
-	}
-	public function initMysql(/*$row,*/$rels = NULL){
+	}*/
+	public function init(/*$row,*/$rels = NULL){
 		if(is_array($rels)){
 			for($i = 0;$i < count($rels); $i++){
 				$r = new Relation();
-				$r->initMysql($rels[$i]);
+				$r->init($rels[$i]);
 				$this->relations->insertLast($r);
 			}
 		}
 	}
 	public function setRel($r){ $this->relations->insertLast($r); }
-	public function setRels($con,$id){
-		/*$this->mysqlEsc($con);*/
+	public function setRels($pdo,$id){
+		/*$this->mysqlEsc($pdo);*/
 		$this->relations = new DBOList();
-		$sql = "SELECT * FROM Relationships WHERE `Key` = '".$this->getKey()."' AND `RID`=".$id;
-		$res = mysqli_query($con,$sql);
-		while($row = mysqli_fetch_array($res)){
+		$sql = "SELECT * FROM Relationships WHERE `Key`=:Key AND `RID`=:RID";
+		try{
+			$stmt = $pdo->prepare($sql);
+			$stmt->execute(["Key"=>$this->getKey(),"RID"=>$id]);
+		}
+		catch(PDOException $e){
+			error_log("SQL DBObj->Delete: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace());
+			return false;
+		}
+		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
 			$r = new Relation();
-			$r->initMysql($row);
+			$r->init($row);
 			$this->relations->insertLast($r);
 		}
 	}
@@ -50,21 +57,21 @@ class Relationship{
 	public function toArray(){
 		return $this->getRels()->toArray();
 	}
-	public function dbWrite($con){
+	public function dbWrite($pdo){
 		$rel = $this->relations->getFirstNode();
 		$succ = true;
 		while($rel != NULL){
-			$succ = $rel->readNode()->dbWrite($con);
+			$succ = $rel->readNode()->dbWrite($pdo);
 			if(!$succ){break;}
 			$rel = $rel->getNext();
 		}
 		return $succ;
 	}
-	public function dbDelete($con){
+	public function dbDelete($pdo){
 		$rel = $this->relations->getFirstNode();
 		$succ = true;
 		while($rel != NULL){
-			$succ = $rel->readNode()->dbDelete($con);
+			$succ = $rel->readNode()->dbDelete($pdo);
 			if(!$succ){break;}
 			$rel = $rel->getNext();
 		}
@@ -83,12 +90,12 @@ class Relationship{
 		}
 		$this->relations = $nRels;
 	}
-	private function mysqlEsc($con){
-		$this->setRoot(mysqli_escape_string($con,$this->getRoot()));
-		$this->setKey(mysqli_escape_string($con,$this->getKey()));
+	private function mysqlEsc($pdo){
+		$this->setRoot(mysqli_escape_string($pdo,$this->getRoot()));
+		$this->setKey(mysqli_escape_string($pdo,$this->getKey()));
 		$rel = $this->getRels()->getFirstNode();
 		while($rel != NULL){
-			$rel->readNode()->mysqlEsc($con);
+			$rel->readNode()->mysqlEsc($pdo);
 			$rel = $rel->getNext();
 		}
 	}
