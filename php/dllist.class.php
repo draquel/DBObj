@@ -165,6 +165,12 @@
 				$current = $current->previous;
 			}
 		}
+		public function toArray(){
+			$a = array();
+			$node = $this->getFirstNode();
+			while($node != NULL){ $obj = $node->readNode(); if(method_exists($obj,"toArray")){ $a[] = $obj->toArray(); }else{ $a[] = $obj; } $node = $node->getNext(); }
+			return $a;
+		}
 	}
 	class Node {
 		public $data;

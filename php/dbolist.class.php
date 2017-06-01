@@ -35,12 +35,13 @@ class DBOList extends DLList{
 		}
 		if(count($result) > 0){ return $result; }else{ return false; }	
 	}
+	/* //Moved to DLList in anticipation of depricating DBOList Class...
 	public function toArray(){
 		$a = array();
 		$node = DLList::getFirstNode();
 		while($node != NULL){ $a[] = $node->readNode()->toArray(); $node = $node->getNext(); }
 		return $a;
-	}
+	}*/
 }
 
 ?>
