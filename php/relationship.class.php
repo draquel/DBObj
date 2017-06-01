@@ -55,7 +55,7 @@ class Relationship{
 		return $succ;
 	}
 	public function toArray(){
-		return $this->getRels()->toArray();
+		return $this->getRels()->toArray(); // ONLY USED FUNCTIONALITY OF DBOLIST -> PUSH INTO DLLIST
 	}
 	public function dbWrite($pdo){
 		$rel = $this->relations->getFirstNode();
