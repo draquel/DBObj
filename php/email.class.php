@@ -7,11 +7,11 @@ class Email extends ContactInfo{
 
 	public function __construct($id,$ptype){
 		ContactInfo::__construct($id,"Emails",$ptype);
-		Root::setRelationships(array('EmailsParent'=>new Relationship($this->_ptype,"Parent")));
+		Root::setRelationships(array('Parent'=>new Relationship($this->_ptype,"Parent")));
 		$this->address = NULL;
 	}
-	public function initMysql($row){ 
-		ContactInfo::initMysql($row);
+	public function init($row){ 
+		ContactInfo::init($row);
 		$this->setAddress($row['Address']);
 	}
 	public function sameAs($oa){

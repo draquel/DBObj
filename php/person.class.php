@@ -13,7 +13,7 @@ class Person extends Root{
 		$this->bday = NULL;
 	}
 	public function initMysql($row){ 
-		Root::initMysql($row);
+		Root::init($row);
 		if(isset($row['First'])){ $this->setFirst($row['First']); }
 		if(isset($row['Last'])){ $this->setLast($row['Last']); }
 		if(isset($row['BDay'])){ $this->setBDay($row['BDay']); }

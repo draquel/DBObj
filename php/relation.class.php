@@ -22,7 +22,7 @@ class Relation extends DBObj{
 		$this->setDefinition($def);
 	}*/
 	public function init($row){ 
-		DBObj::initMysql($row);
+		DBObj::init($row);
 		if(isset($row['RID'])){ $this->setRID($row['RID']); }
 		if(isset($row['KID'])){ $this->setKID($row['KID']); }
 		if(isset($row['Code'])){ $this->setCode($row['Code']); }
