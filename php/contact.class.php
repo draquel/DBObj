@@ -134,7 +134,7 @@ class Contact extends Person{
 	protected function setAddresses($pdo){ 
 		$this->addresses = new DLList();
 		$sql = "SELECT a.* FROM Addresses a LEFT JOIN Relationships r ON a.DBO_ID = r.RID AND r.Key = 'Parent' WHERE a.PID=:PID AND r.Code=:Code";
-		try{ $stmt = $pdo->prepare($sql)->execute(["PID"=>$this->getID(),"Code"=>rtrim($this->getTable(),"s")]); }
+		try{ $stmt = $pdo->prepare($sql); $stmt->execute(["PID"=>$this->getID(),"Code"=>rtrim($this->getTable(),"s")]); }
 		catch(PDOException $e){	error_log("SQL Contact->setAddresses: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace()); return false; }
 		while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
 			$a = new Address(NULL,rtrim($this->getTable()));
@@ -146,7 +146,7 @@ class Contact extends Person{
 	protected function setPhones($pdo){
 		$this->phones = new DLList();
 		$sql = "SELECT p.* FROM Phones p LEFT JOIN Relationships r ON p.DBO_ID = r.RID AND r.Key = 'Parent' WHERE p.PID=:PID AND r.Code=:Code";
-		try{ $stmt = $pdo->prepare($sql)->execute(["PID"=>$this->getID(),"Code"=>rtrim($this->getTable(),"s")]); }
+		try{ $stmt = $pdo->prepare($sql); $stmt->execute(["PID"=>$this->getID(),"Code"=>rtrim($this->getTable(),"s")]); }
 		catch(PDOException $e){	error_log("SQL Contact->setPhones: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace()); return false; }
 		while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
 			$p = new Phone(NULL,rtrim($this->getTable()));
@@ -158,7 +158,7 @@ class Contact extends Person{
 	protected function setEmails($pdo){
 		$this->emails = new DLList();
 		$sql = "SELECT e.* FROM Emails e LEFT JOIN Relationships r ON e.DBO_ID = r.RID AND r.Key = 'Parent' WHERE e.PID=:PID AND r.Code=:Code";
-		try{ $stmt = $pdo->prepare($sql)->execute(["PID"=>$this->getID(),"Code"=>rtrim($this->getTable(),"s")]); }
+		try{ $stmt = $pdo->prepare($sql); $stmt->execute(["PID"=>$this->getID(),"Code"=>rtrim($this->getTable(),"s")]); }
 		catch(PDOException $e){	error_log("SQL Contact->setEmails: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace()); return false; }
 		while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
 			$p = new Email(NULL,rtrim($this->getTable()));

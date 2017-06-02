@@ -25,7 +25,7 @@ class Relationship{
 	public function setRels($pdo,$id){
 		$this->relations = new DBOList();
 		$sql = "SELECT * FROM Relationships WHERE `Key`=:Key AND `RID`=:RID";
-		try{ $stmt = $pdo->prepare($sql)->execute(["Key"=>$this->getKey(),"RID"=>$id]);	}
+		try{ $stmt = $pdo->prepare($sql); $stmt->execute(["Key"=>$this->getKey(),"RID"=>$id]);	}
 		catch(PDOException $e){	error_log("SQL DBObj->Delete: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace()); return false;	}
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
 			$r = new Relation();

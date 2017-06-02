@@ -27,6 +27,11 @@ class ContactInfo extends Root{
 		$p['Primary'] = $this->getPrimary();
 		return $p;
 	}
+	public function dbRead($pdo){
+		if(Root::dbRead($pdo)){
+			return true;
+		}else{ return false; }
+	}
 	protected function mysqlEsc($con){
 		Root::mysqlEsc($con);
 		$this->setName(mysql_escape_string($con,$this->getName()));

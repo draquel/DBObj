@@ -72,7 +72,7 @@ class User extends Contact{
 			$ea = $this->getEmails()->getFirstNode()->readNode()->toArray();
 			$sql = "SELECT d.*, u.*, group_concat(distinct concat(r.ID,':',r.RID,':',r.KID,':',r.Key,':',r.Code,':',r.Definition) separator ';') AS `Groups`, group_concat(distinct concat(`p`.`DBO_ID`,':',`p`.`Name`,':',`p`.`PID`,':',`p`.`Primary`,':',`p`.`Region`,':',`p`.`Area`,':',`p`.`Number`,':',`p`.`Ext`) separator ';') AS `Phones`, group_concat(distinct concat(`a`.`DBO_ID`,':',`a`.`Name`,':',`a`.`PID`,':',`a`.`Primary`,':',`a`.`Address`,':',`a`.`Address2`,':',`a`.`City`,':',`a`.`State`,':',`a`.`Zip`) separator ';') AS `Addresses`, group_concat(distinct concat(`e`.`DBO_ID`,':',`e`.`Name`,':',`e`.`PID`,':',`e`.`Primary`,':',`e`.`Address`) separator ';') AS `Emails`  FROM DBObj d INNER JOIN Users u ON d.ID = u.DBO_ID LEFT JOIN Relationships r ON d.ID = r.RID AND r.Key = 'Group' LEFT JOIN `Addresses` `a` on `a`.`PID` = `d`.`ID` LEFT JOIN `Phones` `p` on `p`.`PID` = `d`.`ID` LEFT JOIN `Emails` `e` on `e`.`PID` = `d`.`ID` WHERE e.Address = :Email AND u.Password = :Pass GROUP BY d.ID ORDER BY d.Created DESC";	
 		}else{ return false; }
-		try{ $stmt = $pdo->prepare($sql)->execute(["User"=>$this->getUname(),"Pass"=>$this->getPass(),"Email"=>(isset($ea) ? $ea['Address'] : NULL)]);	}
+		try{ $stmt = $pdo->prepare($sql); $stmt->execute(["User"=>$this->getUname(),"Pass"=>$this->getPass(),"Email"=>(isset($ea) ? $ea['Address'] : NULL)]);	}
 		catch(PDOException $e){	error_log("SQL User->Authenticate: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace()); return false; }
 		if(mysqli_num_rows($res) == 1){ return mysqli_fetch_array($res); }else{ return FALSE; }
 	}

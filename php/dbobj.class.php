@@ -32,7 +32,7 @@ abstract class DBObj{
 	}
 	protected function db_select($pdo){
 		$sql = "SELECT * FROM DBObj po INNER JOIN ".$this->getTable()." co ON po.ID = co.DBO_ID WHERE po.ID = :ID";
-		try{ $stmt = $pdo->prepare($sql)->execute(['ID'=>$this->getID()]); }
+		try{ $stmt = $pdo->prepare($sql); $stmt->execute(['ID'=>$this->getID()]); }
 		catch(PDOException $e){	error_log("SQL DBObj->Select: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace()); return false; }
 		return $stmt;
 	}
@@ -66,13 +66,13 @@ abstract class DBObj{
 			if($i != count($a)){ $sql .= ","; }
 		}
 		$sql .= " WHERE DBO_ID = :ID;";
-		try{ $stmt = $pdo->prepare($sql)->execute($values);	}
+		try{ $stmt = $pdo->prepare($sql); $stmt->execute($values);	}
 		catch(PDOException $e){	error_log("SQL DBObj->Update: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace()); return false; }
 		return $stmt;
 	}
 	protected function db_delete($pdo){
 		$sql = "DELETE FROM ".$this->getTable()." WHERE DBO_ID=:ID; DELETE FROM DBObj WHERE ID=:ID";
-		try{ $stmt = $pdo->prepare($sql)->execute(["ID"=>$this->getID()]); }
+		try{ $stmt = $pdo->prepare($sql); $stmt->execute(["ID"=>$this->getID()]); }
 		catch(PDOException $e){	error_log("SQL DBObj->Delete: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace()); return false; }
 		return $stmt;
 	}

@@ -24,11 +24,16 @@ class Email extends ContactInfo{
 		$p['Address'] = $this->getAddress();
 		return $p;
 	}
+	public function dbRead($pdo){
+		if(ContactInfo::dbRead($pdo)){
+			return true;
+		}else{ return false; }
+	}
 	public function db_unique($con){
 		$this->msqlEsc();
 		$sql = "SELECT * FROM `Emails` WHERE `Address`=:Address";
 		if($this->getID() != 0){ $sql .= " AND ID !=:ID"; }
-		try{ $stmt = $pdo->prepare($sql)->execute(["ID"=>$this->getID(),"Address"=>$this->getAddress()]); }
+		try{ $stmt = $pdo->prepare($sql); $stmt->execute(["ID"=>$this->getID(),"Address"=>$this->getAddress()]); }
 		catch(PDOException $e){
 			error_log("SQL Email->Uniqueness: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace());
 			return false;

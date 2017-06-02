@@ -75,7 +75,7 @@ class Root extends DBObj{
 
 	protected function setParentID($pdo,$pid){ 
 		$sql = "UPDATE ".$this->getTable()." SET PID=:PID WHERE DBO_ID=:ID";
-		try{ $stmt = $pdo->prepare($sql)->execute(["ID"=>$this->getID(),"PID"=>$pid]); }
+		try{ $stmt = $pdo->prepare($sql); $stmt->execute(["ID"=>$this->getID(),"PID"=>$pid]); }
 		catch(PDOException $e){ error_log("SQL Root->setParentID: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace()); return false;	}
 		return true; 
 	}
