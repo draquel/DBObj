@@ -20,13 +20,11 @@ class Content extends Root{
 	}
 	public function dbRead($con){
 		if(Root::dbRead($con)){
-			$sql = "SELECT concat(First,' ',Last) as `Signature` FROM Users WHERE DBO_ID = ".$this->getAuthor();
-			$res = mysqli_query($con,$sql);
-			if(!$res){ error_log("SQL Content->dbRead: ".$sql); error_log("MYSQL ERROR: ".mysqli_error($con)); }
-			else{
-				$a = mysqli_fetch_array($res);
-				$this->setSignature($a['Signature']);
-			}
+			$sql = "SELECT concat(First,' ',Last) as `Signature` FROM Users WHERE DBO_ID = :Author";
+			try{ $stmt = $pdo->prepare($sql)->execute(['Author'=>$this->getAuthor()]); }
+			catch(PDOException $e){	error_log("SQL Content->dbRead: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace()); return false; }
+			$a = $stmt->fetch(PDO::FETCH_ASSOC);
+			$this->setSignature($a['Signature']);
 			return true;
 		}else{ return false; }
 	}
@@ -40,8 +38,8 @@ class Content extends Root{
 			return true;
 		}else{ return false; }
 	}
-	public function initMysql($row){ 
-		Root::initMysql($row);
+	public function init($row){ 
+		Root::init($row);
 		if(isset($row['Title'])){ $this->setTitle($row['Title']); }
 		if(isset($row['Description'])){ $this->setDescription($row['Description']); }
 		if(isset($row['Keywords'])){ $this->setKeywords(explode(",",$row['Keywords'])); }

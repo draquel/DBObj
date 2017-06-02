@@ -32,14 +32,8 @@ abstract class DBObj{
 	}
 	protected function db_select($pdo){
 		$sql = "SELECT * FROM DBObj po INNER JOIN ".$this->getTable()." co ON po.ID = co.DBO_ID WHERE po.ID = :ID";
-		try{
-			$stmt = $pdo->prepare($sql);
-			$stmt->execute(['ID'=>$this->getID()]);
-		}
-		catch(PDOException $e){
-			error_log("SQL DBObj->Select: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace());
-			return false;
-		}
+		try{ $stmt = $pdo->prepare($sql)->execute(['ID'=>$this->getID()]); }
+		catch(PDOException $e){	error_log("SQL DBObj->Select: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace()); return false; }
 		return $stmt;
 	}
 	protected function db_insert($pdo){
@@ -55,15 +49,8 @@ abstract class DBObj{
 		}
 		if($this->created == NULL || $this->updated == NULL){ $values['Created'] = time(); $values['Updated'] = time(); }else{ $values['Created'] = $this->created; $values['Updated'] = $this->updated; }
 		$sql = "INSERT INTO DBObj (`Table`,Created,Updated) VALUES (\"".$this->table."\",:Created,:Updated); INSERT INTO ".$this->table." (DBO_ID,".$fields.") VALUES (LAST_INSERT_ID(),".$val_str.")";
-		try{
-			$stmt = $pdo->prepare($sql);
-			$stmt->execute($values);
-			$this->setID($pdo->lastInsertId());
-		}
-		catch(PDOException $e){
-			error_log("SQL DBObj->Insert: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace());
-			return false;
-		}
+		try{ $stmt = $pdo->prepare($sql)->execute($values);	$this->setID($pdo->lastInsertId()); }
+		catch(PDOException $e){ error_log("SQL DBObj->Insert: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace()); return false; }
 		return $stmt;
 	}
 	protected function db_update($pdo){ 
@@ -79,26 +66,14 @@ abstract class DBObj{
 			if($i != count($a)){ $sql .= ","; }
 		}
 		$sql .= " WHERE DBO_ID = :ID;";
-		try{
-			$stmt = $pdo->prepare($sql);
-			$stmt->execute($values);
-		}
-		catch(PDOException $e){
-			error_log("SQL DBObj->Update: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace());
-			return false;
-		}
+		try{ $stmt = $pdo->prepare($sql)->execute($values);	}
+		catch(PDOException $e){	error_log("SQL DBObj->Update: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace()); return false; }
 		return $stmt;
 	}
 	protected function db_delete($pdo){
-		$sql = "DELETE FROM ".$this->getTable()." WHERE DBO_ID = :ID; DELETE FROM DBObj WHERE ID = :ID";
-		try{
-			$stmt = $pdo->prepare($sql);
-			$stmt->execute(["ID"=>$this->getID()]);
-		}
-		catch(PDOException $e){
-			error_log("SQL DBObj->Delete: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace());
-			return false;
-		}
+		$sql = "DELETE FROM ".$this->getTable()." WHERE DBO_ID=:ID; DELETE FROM DBObj WHERE ID=:ID";
+		try{ $stmt = $pdo->prepare($sql)->execute(["ID"=>$this->getID()]); }
+		catch(PDOException $e){	error_log("SQL DBObj->Delete: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace()); return false; }
 		return $stmt;
 	}
 	protected function mysqlEsc($pdo){

@@ -34,7 +34,7 @@ class Root extends DBObj{
 			$succ = $r->dbDelete($pdo);
 			if(!$succ){break;}
 		}
-		if($succ){ return DBObj::dbDelete($pdo); }else{ error_log("Root->Delete: SQL ERROR: ".mysqli_error($pdo)); return false; }
+		if($succ){ return DBObj::dbDelete($pdo); }else{ error_log("Root->Delete: SQL ERROR"); return false; }
 	}
 	protected function mysqlEsc($pdo){
 		DBObj::mysqlEsc($pdo);
@@ -75,14 +75,8 @@ class Root extends DBObj{
 
 	protected function setParentID($pdo,$pid){ 
 		$sql = "UPDATE ".$this->getTable()." SET PID=:PID WHERE DBO_ID=:ID";
-		try{
-			$stmt = $pdo->prepare($sql);
-			$stmt->execute(["ID"=>$this->getID(),"PID"=>$pid]);
-		}
-		catch(PDOException $e){
-			error_log("SQL Root->setParentID: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace());
-			return false;
-		}
+		try{ $stmt = $pdo->prepare($sql)->execute(["ID"=>$this->getID(),"PID"=>$pid]); }
+		catch(PDOException $e){ error_log("SQL Root->setParentID: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace()); return false;	}
 		return true; 
 	}
 	protected function setRelationships($rel){ if(is_array($rel)){ $this->relationships = $rel; return TRUE; }else{ return FALSE; } }

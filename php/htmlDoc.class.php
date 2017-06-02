@@ -23,8 +23,8 @@ class HTMLDoc extends Content{
 			return true;
 		}else{ return false; }
 	}
-	public function initMysql($row){ 
-		Content::initMysql($row);
+	public function init($row){ 
+		Content::init($row);
 		if(isset($row['HTML'])){ $this->setHTML($row['HTML']); }
 	}
 	protected function mysqlEsc($con){

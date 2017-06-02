@@ -16,8 +16,8 @@ class Phone extends ContactInfo{
 		$this->num = NULL;
 		$this->ext = NULL;
 	}
-	public function initMysql($row){ 
-		ContactInfo::initMysql($row); 
+	public function init($row){ 
+		ContactInfo::init($row); 
 		$this->setRegion($row['Region']); 
 		$this->setArea($row['Area']); 
 		$this->setNumber($row['Number']); 

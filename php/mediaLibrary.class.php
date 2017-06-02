@@ -10,16 +10,16 @@ class MediaLibrary extends Collection{
 	protected function processMYSQL($data){
 		if($data){
 			$list = new DLList();
-			while($row = mysqli_fetch_array($data)){
+			while ($row = $data->fetch(PDO::FETCH_ASSOC)){
 				$m = new Media(NULL);
-				$m->initMysql($row);
+				$m->init($row);
 				$list->insertLast($m);
 			}
 			return $list;
 		}else{ return false; }
 	}
-	protected function mysqlEsc($con){
-		Collection::mysqlEsc($con);
+	protected function mysqlEsc($pdo){
+		Collection::mysqlEsc($pdo);
 		//mysqlEsc Content Obj **Not Sure if needed**
 	}
 	public function getGalleries(){
@@ -30,9 +30,9 @@ class MediaLibrary extends Collection{
 		$rels = Collection::getContRels();
 		return $rels['Category'];
 	}
-	public function genCarousel($con,$crel = NULL,$def = NULL){
-		if($crel == NULL && $def == NULL){ $page = Collection::getPage($con,NULL,0); }
-		else{ $page = Collection::getRelPage($con,NULL,$crel,$def,0); }
+	public function genCarousel($pdo,$crel = NULL,$def = NULL){
+		if($crel == NULL && $def == NULL){ $page = Collection::getPage($pdo,NULL,0); }
+		else{ $page = Collection::getRelPage($pdo,NULL,$crel,$def,0); }
 		$html = "<div id=\"carousel-example-generic\" class=\"carousel slide\" data-ride=\"carousel\">";
 		$size = $page->size();
 		if($size <= 5){

@@ -12,10 +12,6 @@ class Relationship{
 		$this->key = $k;
 		$this->relations = new DBOList();
 	}
-	/*public function init($root,$key){
-		$this->setRoot($root);
-		$this->setKey($key);
-	}*/
 	public function init(/*$row,*/$rels = NULL){
 		if(is_array($rels)){
 			for($i = 0;$i < count($rels); $i++){
@@ -27,17 +23,10 @@ class Relationship{
 	}
 	public function setRel($r){ $this->relations->insertLast($r); }
 	public function setRels($pdo,$id){
-		/*$this->mysqlEsc($pdo);*/
 		$this->relations = new DBOList();
 		$sql = "SELECT * FROM Relationships WHERE `Key`=:Key AND `RID`=:RID";
-		try{
-			$stmt = $pdo->prepare($sql);
-			$stmt->execute(["Key"=>$this->getKey(),"RID"=>$id]);
-		}
-		catch(PDOException $e){
-			error_log("SQL DBObj->Delete: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace());
-			return false;
-		}
+		try{ $stmt = $pdo->prepare($sql)->execute(["Key"=>$this->getKey(),"RID"=>$id]);	}
+		catch(PDOException $e){	error_log("SQL DBObj->Delete: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace()); return false;	}
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
 			$r = new Relation();
 			$r->init($row);
