@@ -1,5 +1,5 @@
 <?php
-require_once("dbllist.class.php");
+require_once("dllist.class.php");
 require_once("relation.class.php");
 
 class Relationship{

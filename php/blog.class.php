@@ -1,6 +1,6 @@
 <?php
 require_once("collection.class.php");
-require_once("dbllist.class.php");
+require_once("dllist.class.php");
 require_once("post.class.php");
 
 class Blog extends Collection{
