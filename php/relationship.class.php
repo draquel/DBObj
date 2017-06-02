@@ -1,5 +1,5 @@
 <?php
-require_once("dbolist.class.php");
+require_once("dllist.class.php");
 require_once("relation.class.php");
 
 class Relationship{
@@ -10,7 +10,7 @@ class Relationship{
 	public function __construct($r,$k){
 		$this->root = $r;
 		$this->key = $k;
-		$this->relations = new DBOList();
+		$this->relations = new DLList();
 	}
 	public function init(/*$row,*/$rels = NULL){
 		if(is_array($rels)){
@@ -23,7 +23,7 @@ class Relationship{
 	}
 	public function setRel($r){ $this->relations->insertLast($r); }
 	public function setRels($pdo,$id){
-		$this->relations = new DBOList();
+		$this->relations = new DLList();
 		$sql = "SELECT * FROM Relationships WHERE `Key`=:Key AND `RID`=:RID";
 		try{ $stmt = $pdo->prepare($sql); $stmt->execute(["Key"=>$this->getKey(),"RID"=>$id]);	}
 		catch(PDOException $e){	error_log("SQL DBObj->Delete: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace()); return false;	}
@@ -69,7 +69,7 @@ class Relationship{
 
 	public function getRels(){ return $this->relations; }
 	public function setRelRID($id){
-		$nRels = new DBOList();
+		$nRels = new DLList();
 		$rel = $this->relations->getFirstNode();
 		while($rel != NULL){
 			$r = $rel->readNode();
