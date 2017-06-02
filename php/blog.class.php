@@ -10,9 +10,9 @@ class Blog extends Collection{
 	protected function processMYSQL($data){
 		if($data){
 			$list = new DLList();
-			while($row = mysqli_fetch_array($data)){
+			while($row = $data->fetch(PDO::FETCH_ASSOC)){
 				$p = new Post(NULL);
-				$p->initMysql($row);
+				$p->init($row);
 				$list->insertLast($p);
 			}
 			return $list;

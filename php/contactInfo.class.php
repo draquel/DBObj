@@ -7,15 +7,15 @@ class ContactInfo extends Root{
 	protected $primary;
 	protected $_ptype;
 
-	public function __construct($id,$t){
+	public function __construct($id,$t,$ptype){
 		DBObj::__construct($id,$t);
 		$this->name = NULL;
 		$this->pid = NULL;
 		$this->primary = NULL;
 		$this->_ptype = $ptype;
 	}
-	public function initMysql($row){
-		Root::initMysql($row);
+	public function init($row){
+		Root::init($row);
 		if(isset($row['Name'])){ $this->setName($row['Name']); }
 		if(isset($row['PID'])){ $this->setPID($row['PID']); }
 		if(isset($row['Primary'])){ $this->setPrimary($row['Primary']); }
@@ -26,6 +26,11 @@ class ContactInfo extends Root{
 		$p['PID'] = $this->getPID();
 		$p['Primary'] = $this->getPrimary();
 		return $p;
+	}
+	public function dbRead($pdo){
+		if(Root::dbRead($pdo)){
+			return true;
+		}else{ return false; }
 	}
 	protected function mysqlEsc($con){
 		Root::mysqlEsc($con);

@@ -8,28 +8,28 @@ class HTMLDoc extends Content{
 		Content::__construct($id,$t);	
 		$this->html = NULL;
 	}
-	public function dbRead($con){
-		if(Content::dbRead($con)){
+	public function dbRead($pdo){
+		if(Content::dbRead($pdo)){
 			return true;
 		}else{ return false; }
 	}
-	public function dbWrite($con){
-		if(Content::dbWrite($con)){
+	public function dbWrite($pdo){
+		if(Content::dbWrite($pdo)){
 			return true;
 		}else{ return false; }
 	}
-	public function dbDelete($con){
-		if(Content::dbDelete($con)){
+	public function dbDelete($pdo){
+		if(Content::dbDelete($pdo)){
 			return true;
 		}else{ return false; }
 	}
-	public function initMysql($row){ 
-		Content::initMysql($row);
+	public function init($row){ 
+		Content::init($row);
 		if(isset($row['HTML'])){ $this->setHTML($row['HTML']); }
 	}
-	protected function mysqlEsc($con){
-		Content::mysqlEsc($con);
-		$this->setHTML(mysqli_escape_string($con,$this->getHTML()));
+	protected function mysqlEsc($pdo){
+		Content::mysqlEsc($pdo);
+		$this->setHTML(mysqli_escape_string($pdo,$this->getHTML()));
 	}
 	public function toArray(){
 		$a = Content::toArray();

@@ -11,23 +11,23 @@ class Post extends HTMLDoc{
 		Root::setRelationships(array('Parent'=>new Relationship("Blog","Parent"),'Category'=>new Relationship("Post","Category")));
 		$this->coverImage = NULL;
 	}
-	public function dbRead($con){
-		if(HTMLDoc::dbRead($con)){
+	public function dbRead($pdo){
+		if(HTMLDoc::dbRead($pdo)){
 			return true;
 		}else{ return false; }
 	}
-	public function dbWrite($con){
-		if(HTMLDoc::dbWrite($con)){
+	public function dbWrite($pdo){
+		if(HTMLDoc::dbWrite($pdo)){
 			return true;
 		}else{ return false; }
 	}
-	public function dbDelete($con){
-		if(HTMLDoc::dbDelete($con)){
+	public function dbDelete($pdo){
+		if(HTMLDoc::dbDelete($pdo)){
 			return true;
 		}else{ return false; }
 	}
-	public function initMysql($row){ 
-		HTMLDoc::initMysql($row);
+	public function init($row){ 
+		HTMLDoc::init($row);
 		if(isset($row['CoverImage'])){ $this->setCoverImage($row['CoverImage']); }
 		if(isset($row['Published'])){ $this->setPublished($row['Published']); }
 		if(isset($row['Category'])){
@@ -39,14 +39,14 @@ class Post extends HTMLDoc{
 				$categories[] = array("ID"=>$a[0],"Created"=>NULL,"Updated"=>NULL,"RID"=>$a[1],"KID"=>$a[2],"Key"=>$a[3],"Code"=>$a[4],"Definition"=>$a[5]); 
 			}
 			$relations = $this->getRelationships();
-			$relations['Category']->initMysql($categories);
+			$relations['Category']->init($categories);
 			$this->setRelationships($relations);
 		}
 	}
-	protected function mysqlEsc($con){
-		HTMLDoc::mysqlEsc($con);
-		$this->setCoverImage(mysqli_escape_string($con,$this->getCoverImage()));
-		$this->setPublished(mysqli_escape_string($con,$this->getPublished(NULL)));
+	protected function mysqlEsc($pdo){
+		HTMLDoc::mysqlEsc($pdo);
+		$this->setCoverImage(mysqli_escape_string($pdo,$this->getCoverImage()));
+		$this->setPublished(mysqli_escape_string($pdo,$this->getPublished(NULL)));
 	}
 	public function toArray(){
 		$a = HTMLDoc::toArray();
@@ -66,7 +66,7 @@ class Post extends HTMLDoc{
 	public function getCategories(){ $rels = Root::getRelationships(); return $rels['Category']->getRels(); }
 	protected function getCoverImage(){ return (string)$this->coverImage; }
 	protected function getPublished($ds){ if(isset($ds) && $ds != NULL && $ds != ""){ return (string)date($ds,$this->published); }else{ return (int)$this->published; } }
-	public function setCategories($con){ Root::setRelation("Post","Category",$con); }
+	public function setCategories($pdo){ Root::setRelation("Post","Category",$pdo); }
 	protected function setCoverImage($i){ $this->coverImage = (string)$i; }
 	protected function setPublished($i){ $this->published = (int)$i; }
 }

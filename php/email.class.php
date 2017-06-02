@@ -7,11 +7,11 @@ class Email extends ContactInfo{
 
 	public function __construct($id,$ptype){
 		ContactInfo::__construct($id,"Emails",$ptype);
-		Root::setRelationships(array('EmailsParent'=>new Relationship($this->_ptype,"Parent")));
+		Root::setRelationships(array('Parent'=>new Relationship($this->_ptype,"Parent")));
 		$this->address = NULL;
 	}
-	public function initMysql($row){ 
-		ContactInfo::initMysql($row);
+	public function init($row){ 
+		ContactInfo::init($row);
 		$this->setAddress($row['Address']);
 	}
 	public function sameAs($oa){
@@ -24,12 +24,21 @@ class Email extends ContactInfo{
 		$p['Address'] = $this->getAddress();
 		return $p;
 	}
+	public function dbRead($pdo){
+		if(ContactInfo::dbRead($pdo)){
+			return true;
+		}else{ return false; }
+	}
 	public function db_unique($con){
 		$this->msqlEsc();
-		$sql = "SELECT * FROM `Emails` WHERE `Address`=\"".$this->getAddress()."\"";
-		if($this->getID() != 0){ $sql .= " AND ID !=\"".$this->getID()."\""; }
-		$res = mysqli_query($con,$sql);
-		if(mysql_num_rows($res) == 0){ return true; }else{ return false; }
+		$sql = "SELECT * FROM `Emails` WHERE `Address`=:Address";
+		if($this->getID() != 0){ $sql .= " AND ID !=:ID"; }
+		try{ $stmt = $pdo->prepare($sql); $stmt->execute(["ID"=>$this->getID(),"Address"=>$this->getAddress()]); }
+		catch(PDOException $e){
+			error_log("SQL Email->Uniqueness: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace());
+			return false;
+		}
+		if($stmt->rowCount() == 0){ return true; }else{ return false; }
 	}
 	protected function mysqlEsc($con){
 		ContactInfo::mysqlEsc($con);
