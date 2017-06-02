@@ -28,10 +28,7 @@ class Email extends ContactInfo{
 		$this->msqlEsc();
 		$sql = "SELECT * FROM `Emails` WHERE `Address`=:Address";
 		if($this->getID() != 0){ $sql .= " AND ID !=:ID"; }
-		try{
-			$stmt = $pdo->prepare($sql);
-			$stmt->execute(["ID"=>$this->getID(),"Address"=>$this->getAddress()]);
-		}
+		try{ $stmt = $pdo->prepare($sql)->execute(["ID"=>$this->getID(),"Address"=>$this->getAddress()]); }
 		catch(PDOException $e){
 			error_log("SQL Email->Uniqueness: ".$sql); error_log("SQL ERROR: ".$e->getMessage()); error_log("SQL Stack Trace: ".debug_print_backtrace());
 			return false;

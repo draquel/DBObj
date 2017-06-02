@@ -18,8 +18,8 @@ class Address extends ContactInfo{
 		$this->state = NULL;
 		$this->zip = NULL;
 	}
-	public function initMysql($row){
-		ContactInfo::initMysql($row);
+	public function init($row){
+		ContactInfo::init($row);
 		$this->setAddress($row['Address']);
 		$this->setAddress2($row['Address2']);
 		$this->setCity($row['City']);

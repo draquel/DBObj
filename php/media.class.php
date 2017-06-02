@@ -12,23 +12,23 @@ class Media extends Content{
 		$this->uri = NULL;
 		$this->type = NULL;
 	}
-	public function dbRead($con){
-		if(Content::dbRead($con)){
+	public function dbRead($pdo){
+		if(Content::dbRead($pdo)){
 			return true;
 		}else{ return false; }
 	}
-	public function dbWrite($con){
-		if(Content::dbWrite($con)){
+	public function dbWrite($pdo){
+		if(Content::dbWrite($pdo)){
 			return true;
 		}else{ return false; }
 	}
-	public function dbDelete($con){
-		if(Content::dbDelete($con)){
+	public function dbDelete($pdo){
+		if(Content::dbDelete($pdo)){
 			return true;
 		}else{ return false; }
 	}
-	public function initMysql($row){ 
-		Content::initMysql($row);
+	public function init($row){ 
+		Content::init($row);
 		if(isset($row['URI'])){ $this->setURI($row['URI']); }
 		if(isset($row['Type'])){ $this->setType($row['Type']); }
 		if(isset($row['Category'])){
@@ -40,7 +40,7 @@ class Media extends Content{
 				$categories[] = array("ID"=>$a[0],"Created"=>NULL,"Updated"=>NULL,"RID"=>$a[1],"KID"=>$a[2],"Key"=>$a[3],"Code"=>$a[4],"Definition"=>$a[5]); 
 			}
 			$relations = $this->getRelationships();
-			$relations['Category']->initMysql($categories);
+			$relations['Category']->init($categories);
 			$this->setRelationships($relations);
 		}
 		if(isset($row['Gallery'])){
@@ -52,14 +52,14 @@ class Media extends Content{
 				$galleries[] = array("ID"=>$a[0],"Created"=>NULL,"Updated"=>NULL,"RID"=>$a[1],"KID"=>$a[2],"Key"=>$a[3],"Code"=>$a[4],"Definition"=>$a[5]); 
 			}
 			$relations = $this->getRelationships();
-			$relations['Gallery']->initMysql($galleries);
+			$relations['Gallery']->init($galleries);
 			$this->setRelationships($relations);
 		}
 	}
-	protected function mysqlEsc($con){
-		Content::mysqlEsc($con);
-		$this->setURI(mysqli_escape_string($con,$this->getURI()));
-		$this->setType(mysqli_escape_string($con,$this->getType()));
+	protected function mysqlEsc($pdo){
+		Content::mysqlEsc($pdo);
+		$this->setURI(mysqli_escape_string($pdo,$this->getURI()));
+		$this->setType(mysqli_escape_string($pdo,$this->getType()));
 	}
 	public function toArray(){
 		$a = Content::toArray();
@@ -84,8 +84,8 @@ class Media extends Content{
 	protected function getType(){ return (string)$this->type; }
 	protected function setURI($u){ (string)$this->uri = $u; }
 	protected function setType($t){ (string)$this->type = $t; }
-	public function setCategories($con){ Root::setRelation("Media","Category",$con); }
-	public function setGalleries($con){ Root::setRelation("Media","Gallery",$con); }
+	public function setCategories($pdo){ Root::setRelation("Media","Category",$pdo); }
+	public function setGalleries($pdo){ Root::setRelation("Media","Gallery",$pdo); }
 }
 
 ?>
